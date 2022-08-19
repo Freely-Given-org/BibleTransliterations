@@ -1,0 +1,194 @@
+x-grc-koine	Meta	en	Comment
+Α	ALPHA	A	# Can be short or long
+Ἀ		A
+Ἄ		A
+Ἆ		A
+Ἁ		Ha
+Ἅ		Ha
+Ἃ		Ha
+ᾍ		Ha
+α	alpha	a	# Can be short or long
+ά		a
+ὰ		a
+ἀ		a
+ᾶ		a
+ἄ		a
+ἂ		a
+ᾳ		a
+ἆ		a
+ᾷ		a
+ᾄ		a
+ᾴ		a
+ἁ		ha
+ἃ		ha
+ἅ		ha
+Β	BETA	B
+β	beta	b
+Γ	GAMMA	G
+γ	gamma	g
+Δ	DELTA	D
+δ	delta	d
+Ε	EPSILON	E
+Ἐ		E
+Ἔ		E
+Ἑ		He
+Ἕ		He
+Ἓ		He
+ε	epsilon	e
+έ		e
+ὲ		e
+ἐ		e
+ἔ		e
+ἑ		he
+ἕ		he
+ἓ		he
+Ζ	ZETA	Z
+ζ	zeta	z
+Η	ETA	Ē
+Ἠ		Ē
+Ἦ		Ē
+Ἤ		Ē
+Ἢ		Ē
+ᾜ		Ē
+Ἡ		Hē
+Ἥ		Hē
+η	eta	ē
+ή		ē
+ὴ		ē
+ῆ		ē
+ἦ		ē
+ἢ		ē
+ἠ		ē
+ἤ		ē
+ᾔ		ē
+ῃ		ē
+ᾐ		ē
+ῇ		ē
+ᾖ		ē
+ῄ		ē
+ἡ		hē
+ἧ		hē
+ᾗ		hē
+ἥ		hē
+ἣ		hē
+ᾑ		hē
+Θ	THETA	Th
+θ	theta	th
+Ι	IOTA	I	# Can be short or long
+Ἰ		I
+Ἴ		I
+Ἱ		Hi
+Ἵ		Hi
+ι	iota	i	# Can be short or long
+ί		i
+ὶ		i
+ἰ		i
+ῖ		i
+ἶ		i
+ἴ		i
+ϊ		i
+ΐ		i
+ῒ		i
+ἷ		i
+ἱ		hi
+ἵ		hi
+Κ	KAPPA	K
+κ	kappa	k
+Λ	LAMBDA	L
+λ	lambda	l
+Μ	MU	M
+μ	mu	m
+Ν	NU	N
+ν	nu	n
+Ξ	XI	X
+ξ	xi	x
+Ο	OMICRON	O
+Ὀ		O
+Ὄ		O
+Ὁ		Ho
+Ὃ		Ho
+Ὅ		Ho
+ο	omicron	o
+ό		o
+ὸ		o
+ὄ		o
+ὀ		o
+ὂ		o
+ὁ		ho
+ὅ		ho
+ὃ		ho
+Π	PI	P
+π	pi	p
+Ρ	RHO	R
+Ῥ		Ɽ
+ρ	rho	r
+ῥ		ɽ
+Σ	SIGMA	S
+σ	sigma	s
+ς	sigma	s
+Τ	TAU	T
+τ	tau	t
+Υ	UPSILON	U	# Can be short or long
+Ὑ		Hu
+Ὕ		Hu
+Ὗ		Hu
+υ	upsilon	u	# Can be short or long
+ύ		u
+ὺ		u
+ὐ		u
+ῦ		u
+ὒ		u
+ὖ		u
+ϋ		u
+ὔ		u
+ΰ		u
+ῢ		u
+ὑ		hu
+ὕ		hu
+Φ	PHI	F
+φ	phi	f
+Χ	CHI	Χ	# NOTE: Here we reuse the Greek letter to distinguish it from Xi
+χ	chi	χ	# NOTE: Here we reuse the Greek letter to distinguish it from xi
+Ψ	PSI	ps
+ψ	psi	ps
+Ω	OMEGA	Ō
+Ὠ		Ō
+Ὦ		Ō
+Ὤ		Ō
+Ὡ		Hō
+Ὥ		Hō
+Ὧ		Hō
+ᾯ		Hō
+ω	omega	ō
+ώ		ō
+ὼ		ō
+ὠ		ō
+ῶ		ō
+ὢ		ō
+ὤ		ō
+ῴ		ō
+ᾠ		ō
+ὦ		ō
+ῳ		ōi
+ῷ		ōi
+ὡ		hō
+ὥ		hō
+ὧ		hō
+ᾧ		hō
+;		?	# Must be above the following line
+·		;
+αἳ		hai
+αἷ		hai
+αὗ		hau
+Εἷ		Hei
+εἷ		hei
+Εὗ		Heu
+εὗ		heu
+οἱ		hoi
+οἳ		hoi
+οἷ		hoi
+Οὓ		Hou
+Οὗ		Hou
+οὓ		hou
+οὗ		hou
+υἱ		hui
