@@ -59,8 +59,11 @@ English conventions will allow).
 
 There's many more -- just use your search engine!
 
+https://en.wikipedia.org/wiki/Hebrew_alphabet
 https://www.chabad.org/library/article_cdo/aid/4069287/jewish/The-Hebrew-Alphabet.htm
 https://brill.com/fileasset/downloads_static/static_fonts_scholarlyhebrewtransliteration.pdf
+https://www.crivoice.org/terms/transliteration.html
+https://bible.org/netbible/index.htm?hebrewtl.htm
 
 ## Koine Greek
 
@@ -78,3 +81,4 @@ are regularly used, although they weren't originally.
 There's many more -- just use your search engine!
 
 https://en.wikipedia.org/wiki/Koine_Greek
+https://greekforall.com/learn-biblical-greek-grammar/biblical-greek-alphabet/

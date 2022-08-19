@@ -147,8 +147,8 @@ x-grc-koine	Meta	en	Comment
 ὕ		hu
 Φ	PHI	F
 φ	phi	f
-Χ	CHI	Χ	# NOTE: Here we reuse the Greek letter to distinguish it from Xi
-χ	chi	χ	# NOTE: Here we reuse the Greek letter to distinguish it from xi
+Χ	CHI	Ⱪ	# NOTE: Here use a letter with a descender to distinguish from Kappa
+χ	chi	ⱪ	# NOTE: Here use a letter with a descender to distinguish from kappa
 Ψ	PSI	ps
 ψ	psi	ps
 Ω	OMEGA	Ō
