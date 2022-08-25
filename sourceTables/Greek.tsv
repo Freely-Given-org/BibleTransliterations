@@ -22,6 +22,8 @@ x-grc-koine	Meta	en	Comment
 ἁ		ha
 ἃ		ha
 ἅ		ha
+αά		a'a	# Ensure it's seen as two syllables -- not a long a
+αοὺ		a'ou	# Ensure it's seen as two syllables -- not a long a
 Β	BETA	B
 β	beta	b
 Γ	GAMMA	G

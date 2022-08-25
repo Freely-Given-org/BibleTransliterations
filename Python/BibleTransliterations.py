@@ -31,16 +31,17 @@ from gettext import gettext as _
 from pathlib import Path
 import logging
 from csv import  DictReader
+import unicodedata
 
 import BibleOrgSysGlobals
 from BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 
 
 
-LAST_MODIFIED_DATE = '2022-08-24' # by RJH
+LAST_MODIFIED_DATE = '2022-08-25' # by RJH
 SHORT_PROGRAM_NAME = "BibleTransliterations"
 PROGRAM_NAME = "Bible Transliterations handler"
-PROGRAM_VERSION = '0.03'
+PROGRAM_VERSION = '0.04'
 programNameVersion = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
 
 debuggingThisModule = False
@@ -98,15 +99,24 @@ def load_transliteration_table(which) -> bool:
 def transliterate_Hebrew(input:str, toTitleFlag=False) -> str:
     """
     Hebrew doesn't have capital letters,
-        so if we know it's a name or at the beginning of a sentence,
+        so if the calling function knows it's a name or at the beginning of a sentence,
         we may need to capitalise it.
     """
-    fnPrint( debuggingThisModule, f"transliterate_Hebrew({input})")
+    fnPrint( debuggingThisModule, f"transliterate_Hebrew({input}, {toTitleFlag})")
     result = input
+
     for tsv_row in hebrew_tsv_rows:
         # print( f"  {tsv_row=}")
         result = result.replace( tsv_row['hbo'], tsv_row['en'] )
-    return result.title() if toTitleFlag else result
+
+    if not toTitleFlag:
+        return result
+    # else
+    for first_Hebrew_index,char in enumerate(input):
+        if 'HEBREW' in unicodedata.name(char):
+            break
+    # print(f"Title-casing '{result}' '{result[first_Hebrew_index:first_Hebrew_index+2]}' to '{result[:first_Hebrew_index+2].title()}'")
+    return f'{result[:first_Hebrew_index]}{result[first_Hebrew_index:first_Hebrew_index+2].title()}{result[first_Hebrew_index+2:]}' # Title case, but don't want something like Rəḩavə'Ām
 # end of transliterate_Hebrew function
 
 def transliterate_Greek(input:str) -> str:
@@ -184,7 +194,7 @@ Matthew_1 = '''\\v 1 ¶Βίβλος γενέσεως Ἰησοῦ Χριστο�
 def check_line(line:str):
     """
     """
-    import unicodedata
+    # import unicodedata
     for c,char in enumerate(line, start=1):
         if char in ' ʼ,.?!:;-–/\\1234567890“”‘’()¶…©':
             continue
