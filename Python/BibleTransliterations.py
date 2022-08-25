@@ -37,10 +37,10 @@ from BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 
 
 
-LAST_MODIFIED_DATE = '2022-08-19' # by RJH
+LAST_MODIFIED_DATE = '2022-08-24' # by RJH
 SHORT_PROGRAM_NAME = "BibleTransliterations"
 PROGRAM_NAME = "Bible Transliterations handler"
-PROGRAM_VERSION = '0.02'
+PROGRAM_VERSION = '0.03'
 programNameVersion = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
 
 debuggingThisModule = False
@@ -52,7 +52,8 @@ def load_transliteration_table(which) -> bool:
     """
     """
     global hebrew_tsv_rows, greek_tsv_rows
-    with open( f'../sourceTables/{which}.tsv', 'rt', encoding='utf-8' ) as tsv_table:
+    table_folderpath = Path(__file__).parent.parent # Find tables relative to this module
+    with open( table_folderpath.joinpath(f'sourceTables/{which}.tsv'), 'rt', encoding='utf-8' ) as tsv_table:
         tsv_lines = tsv_table.readlines()
 
     # Remove BOM
@@ -62,7 +63,7 @@ def load_transliteration_table(which) -> bool:
 
     # Get the headers before we start
     original_column_headers = [ header for header in tsv_lines[0].strip().split('\t') ]
-    dPrint('Normal', debuggingThisModule, f"  Original column headers: ({len(original_column_headers)}): {original_column_headers}")
+    dPrint('Normal', debuggingThisModule, f"  Original transliteration column headers: ({len(original_column_headers)}): {original_column_headers}")
 
     # Read, check the number of columns, and summarise row contents all in one go
     dict_reader = DictReader(tsv_lines, delimiter='\t')
@@ -90,18 +91,22 @@ def load_transliteration_table(which) -> bool:
     if which=='Hebrew':
         destination = hebrew_tsv_rows = sorted(tsv_rows, key=lambda k:-len(k[source_language_code]))
     else: destination = greek_tsv_rows = sorted(tsv_rows, key=lambda k:-len(k[source_language_code]))
-    vPrint('Quiet', debuggingThisModule, f"  Loaded {len(destination):,} '{which}' data rows.")
+    vPrint('Quiet', debuggingThisModule, f"  Loaded {len(destination):,} '{which}' transliteration data rows.")
     return True
 # end of load_transliteration_table()
 
-def transliterate_Hebrew(input:str) -> str:
+def transliterate_Hebrew(input:str, toTitleFlag=False) -> str:
     """
+    Hebrew doesn't have capital letters,
+        so if we know it's a name or at the beginning of a sentence,
+        we may need to capitalise it.
     """
+    fnPrint( debuggingThisModule, f"transliterate_Hebrew({input})")
     result = input
     for tsv_row in hebrew_tsv_rows:
         # print( f"  {tsv_row=}")
         result = result.replace( tsv_row['hbo'], tsv_row['en'] )
-    return result
+    return result.title() if toTitleFlag else result
 # end of transliterate_Hebrew function
 
 def transliterate_Greek(input:str) -> str:
