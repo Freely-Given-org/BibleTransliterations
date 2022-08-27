@@ -38,10 +38,10 @@ from BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 
 
 
-LAST_MODIFIED_DATE = '2022-08-25' # by RJH
+LAST_MODIFIED_DATE = '2022-08-27' # by RJH
 SHORT_PROGRAM_NAME = "BibleTransliterations"
 PROGRAM_NAME = "Bible Transliterations handler"
-PROGRAM_VERSION = '0.04'
+PROGRAM_VERSION = '0.06'
 programNameVersion = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
 
 debuggingThisModule = False
@@ -64,7 +64,7 @@ def load_transliteration_table(which) -> bool:
 
     # Get the headers before we start
     original_column_headers = [ header for header in tsv_lines[0].strip().split('\t') ]
-    dPrint('Normal', debuggingThisModule, f"  Original transliteration column headers: ({len(original_column_headers)}): {original_column_headers}")
+    dPrint('Verbose', debuggingThisModule, f"  Original transliteration column headers: ({len(original_column_headers)}): {original_column_headers}")
 
     # Read, check the number of columns, and summarise row contents all in one go
     dict_reader = DictReader(tsv_lines, delimiter='\t')
@@ -115,6 +115,8 @@ def transliterate_Hebrew(input:str, toTitleFlag=False) -> str:
     for first_Hebrew_index,char in enumerate(input):
         if 'HEBREW' in unicodedata.name(char):
             break
+    if result[first_Hebrew_index] == 'ʦ':
+        return result.replace( 'ʦ', 'Ts', 1 ) # This digraph doesn't have an UPPERCASE form
     # print(f"Title-casing '{result}' '{result[first_Hebrew_index:first_Hebrew_index+2]}' to '{result[:first_Hebrew_index+2].title()}'")
     return f'{result[:first_Hebrew_index]}{result[first_Hebrew_index:first_Hebrew_index+2].title()}{result[first_Hebrew_index+2:]}' # Title case, but don't want something like Rəḩavə'Ām
 # end of transliterate_Hebrew function

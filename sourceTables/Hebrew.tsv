@@ -7,6 +7,7 @@ hbo	Meta	en	Comment
 בֹּ		bo	# Holam is (wrongly?) BEFORE dagesh
 ג	Gimel	g
 גּ	Gimel	g
+גֵּ		gē	# Tsere is (wrongly?) BEFORE dagesh
 ד	Dalet	d
 דּ	Dalet	d
 דָּ		dā	# Qamats is (wrongly?) BEFORE dagesh
@@ -39,6 +40,7 @@ hbo	Meta	en	Comment
 ם	MemFinal	m
 נ	Nun	n
 נּ	Nun	nn
+נֹּ		no	# Holam is (wrongly?) BEFORE dagesh
 ן	NunFinal	n
 ס	Samekh	ş
 סּ	Samekh	şş
@@ -62,6 +64,7 @@ hbo	Meta	en	Comment
 שֶׁ		she	# Segol is (wrongly?) BEFORE shin dot
 שֵׁ		shē	# Tsere is (wrongly?) BEFORE shin dot
 שִׁ		shi	# Hiriq is (wrongly?) BEFORE shin dot
+שֹׁ		sho	# Holam is (wrongly?) BEFORE shin dot
 שֶּׁ		shshe	# Segol is (wrongly?) BEFORE dagesh which is BEFORE shin dot
 שְׂ		sə	# Sheva is (wrongly?) BEFORE sin dot
 שַׂ		sa	# Patah is (wrongly?) BEFORE sin dot

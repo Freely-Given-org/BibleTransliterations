@@ -22,8 +22,10 @@ x-grc-koine	Meta	en	Comment
 ἁ		ha
 ἃ		ha
 ἅ		ha
-αά		a'a	# Ensure it's seen as two syllables -- not a long a
-αοὺ		a'ou	# Ensure it's seen as two syllables -- not a long a
+αα		a'a	# Ensure it's seen as two syllables -- not as long a
+αά		a'a	# Ensure it's seen as two syllables -- not as long a
+αὰ		a'a	# Ensure it's seen as two syllables -- not as long a
+αοὺ		a'ou	# Ensure it's seen as two syllables -- not as long a
 Β	BETA	B
 β	beta	b
 Γ	GAMMA	G
@@ -82,6 +84,12 @@ x-grc-koine	Meta	en	Comment
 Ἴ		I
 Ἱ		Hi
 Ἵ		Hi
+Ἰα		Ya
+Ἰά		Ya
+Ἰη		Yē
+Ἰο		Yo
+Ἰό		Yo
+Ἰω		Yō
 ι	iota	i	# Can be short or long
 ί		i
 ὶ		i
@@ -120,6 +128,7 @@ x-grc-koine	Meta	en	Comment
 ὁ		ho
 ὅ		ho
 ὃ		ho
+οό		o'o	# Ensure it's seen as two syllables -- not as long o
 Π	PI	P
 π	pi	p
 Ρ	RHO	R
