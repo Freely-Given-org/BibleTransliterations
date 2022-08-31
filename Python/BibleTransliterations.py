@@ -38,10 +38,10 @@ from BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 
 
 
-LAST_MODIFIED_DATE = '2022-08-27' # by RJH
+LAST_MODIFIED_DATE = '2022-08-31' # by RJH
 SHORT_PROGRAM_NAME = "BibleTransliterations"
 PROGRAM_NAME = "Bible Transliterations handler"
-PROGRAM_VERSION = '0.06'
+PROGRAM_VERSION = '0.07'
 programNameVersion = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
 
 debuggingThisModule = False
@@ -53,8 +53,8 @@ def load_transliteration_table(which) -> bool:
     """
     """
     global hebrew_tsv_rows, greek_tsv_rows
-    table_folderpath = Path(__file__).parent.parent # Find tables relative to this module
-    with open( table_folderpath.joinpath(f'sourceTables/{which}.tsv'), 'rt', encoding='utf-8' ) as tsv_table:
+    project_folderpath = Path(__file__).parent.parent # Find tables relative to this module
+    with open( project_folderpath.joinpath(f'sourceTables/{which}.tsv'), 'rt', encoding='utf-8' ) as tsv_table:
         tsv_lines = tsv_table.readlines()
 
     # Remove BOM
