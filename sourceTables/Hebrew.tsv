@@ -3,53 +3,60 @@ hbo	Meta	en	Comment
 אּ	Alef	'
 ב	Bet	v
 בּ	Bet	b
-בָּ		bā	# Qamats is (wrongly?) BEFORE dagesh
-בֹּ		bo	# Holam is (wrongly?) BEFORE dagesh
+בָּ		bbā	# Qamats is (wrongly?) BEFORE dagesh
+בִּ		bbi	# Hiriq is (wrongly?) BEFORE dagesh
+בֹּ		bbo	# Holam is (wrongly?) BEFORE dagesh
 ג	Gimel	g
 גּ	Gimel	g
-גֵּ		gē	# Tsere is (wrongly?) BEFORE dagesh
-גֹּ		go	# Holam is (wrongly?) BEFORE dagesh
-גֻּ		gu	# Qubuts is (wrongly?) BEFORE dagesh
+גֵּ		ggē	# Tsere is (wrongly?) BEFORE dagesh
+גֹּ		ggo	# Holam is (wrongly?) BEFORE dagesh
+גֻּ		ggu	# Qubuts is (wrongly?) BEFORE dagesh
 ד	Dalet	d
 דּ	Dalet	d
-דָּ		dā	# Qamats is (wrongly?) BEFORE dagesh
-דֵּ		dē	# Tsere is (wrongly?) BEFORE dagesh
+דַּ		dda	# Patah is (wrongly?) BEFORE dagesh
+דָּ		ddā	# Qamats is (wrongly?) BEFORE dagesh
+דֵּ		ddē	# Tsere is (wrongly?) BEFORE dagesh
 ה	He	h
 הּ	HeFinal	h
 ו	Vav	v
 וֹ		ō
 וּ		ū
+וָּ		vvā	# Qamats is (wrongly?) BEFORE dagesh
 ז	Zayin	z
 זּ	Zayin	zz
-זִּ		zi	# Hiriq is (wrongly?) BEFORE dagesh
+זִּ		zzi	# Hiriq is (wrongly?) BEFORE dagesh
 ח	Het	ḩ
 חּ	Het	ḩḩ
 ט	Tet	ţ
 טּ	Tet	ţţ
-טָּ		ţā	# Qamats is (wrongly?) BEFORE dagesh
+טָּ		ţţā	# Qamats is (wrongly?) BEFORE dagesh
 י	Yod	y
 יּ	Yod	u
-יָּ		yā	# Qamats is (wrongly?) BEFORE dagesh
+יָּ		yyā	# Qamats is (wrongly?) BEFORE dagesh
 כ	Kaf	k
 כּ	Kaf	k
+כִּ		kki	# Hiriq is (wrongly?) BEFORE dagesh
+כִּי		kkī	# Hiriq is (wrongly?) BEFORE dagesh BEFORE YOD
 ך	KafFinal	k
 ךּ	KafFinal	k
 ל	Lamed	l
 לּ	Lamed	ll
 מ	Mem	m
 מּ	Mem	mm
-מִּ		mi	# Hiriq is (wrongly?) BEFORE dagesh
+מָּ		mmā	# Qamats is (wrongly?) BEFORE dagesh
+מֶּ		mme	# Segol is (wrongly?) BEFORE dagesh
+מִּ		mmi	# Hiriq is (wrongly?) BEFORE dagesh
 ם	MemFinal	m
 נ	Nun	n
 נּ	Nun	nn
-נֹּ		no	# Holam is (wrongly?) BEFORE dagesh
+נֹּ		nno	# Holam is (wrongly?) BEFORE dagesh
 ן	NunFinal	n
 ס	Samekh	ş
 סּ	Samekh	şş
 ע	Ayin	'
 פ	Pe	f
 פּ	Pe	p
-פַּ		pa	# Patah is (wrongly?) BEFORE dagesh
+פַּ		ppa	# Patah is (wrongly?) BEFORE dagesh
 ף	PeFinal	f
 ףּ	PeFinal	p
 צ	Tsadi	ʦ
@@ -71,6 +78,7 @@ hbo	Meta	en	Comment
 שְׂ		sə	# Sheva is (wrongly?) BEFORE sin dot
 שַׂ		sa	# Patah is (wrongly?) BEFORE sin dot
 שָׂ		sā	# Qamats is (wrongly?) BEFORE sin dot
+שֶׂ		se	# Segol is (wrongly?) BEFORE sin dot
 שׁ	Shin	sh
 שׁ	Shin	sh
 שּׁ	Shin	shsh
@@ -79,10 +87,10 @@ hbo	Meta	en	Comment
 שּׂ	Sin	ss
 ת	Tav	t
 תּ	Tav	t
-תַּ		ta	# Patah is (wrongly?) BEFORE dagesh
-תָּ		tā	# Qamats is (wrongly?) BEFORE dagesh
-תֶּ		te	# Segol is (wrongly?) BEFORE dagesh
-תִּ		ti	# Hiriq is (wrongly?) BEFORE dagesh
+תַּ		tta	# Patah is (wrongly?) BEFORE dagesh
+תָּ		ttā	# Qamats is (wrongly?) BEFORE dagesh
+תֶּ		tte	# Segol is (wrongly?) BEFORE dagesh
+תִּ		tti	# Hiriq is (wrongly?) BEFORE dagesh
 ְ	Sheva	ə
 ַ	Patah	a
 ָ	Qamats	ā
@@ -94,6 +102,7 @@ hbo	Meta	en	Comment
 ֱ	HatafSegol	e
 ֵ	Tsere	ē
 ִ	Hiriq	i
+ִי	HiriqYod	ī	# This may not be a good solution -- only applies if the yod doesn't have it's own pointing
 ֹ	Holam	o
 ֺ	HolamHaserForVav	o
 ֻ	Qubuts	u
