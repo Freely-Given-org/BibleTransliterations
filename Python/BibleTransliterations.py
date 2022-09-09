@@ -141,6 +141,21 @@ def transliterate_Greek(input:str) -> str:
     for tsv_row in greek_tsv_rows:
         # print( f"  {tsv_row=}")
         result = result.replace( tsv_row['x-grc-koine'], tsv_row['en'] )
+
+    # Find the index of the first Greek character in the INPUT string (will be the same for the output string)
+    for first_Greek_index,char in enumerate(input):
+        if 'GREEK' in unicodedata.name(char):
+            break
+    else:
+        logging.warning( f"transliterate_Greek failed to find any Greek in '{input}'")
+        return result
+
+    # Transform ie to ye at start
+    for inChars,outChars in ( ('ie','ye'), ('Ie','Ye') ):
+        if result[first_Greek_index:].startswith( inChars):
+            result = f'{result[:first_Greek_index]}{outChars}{result[first_Greek_index+2:]}'
+            break
+
     return result
 # end of transliterate_Greek function
 
