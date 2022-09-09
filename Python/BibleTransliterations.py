@@ -101,20 +101,33 @@ def transliterate_Hebrew(input:str, toTitleFlag=False) -> str:
     Hebrew doesn't have capital letters,
         so if the calling function knows it's a name or at the beginning of a sentence,
         we may need to capitalise it.
+
+    TODO: This is only a temporary function that sort of works
+        but it really needs to be completely rewritten.
+        See https://en.wikipedia.org/wiki/Romanization_of_Hebrew.
     """
     fnPrint( debuggingThisModule, f"transliterate_Hebrew({input}, {toTitleFlag})")
     result = input
 
+    # Transliterate Hebrew letters to English
     for tsv_row in hebrew_tsv_rows:
         # print( f"  {tsv_row=}")
         result = result.replace( tsv_row['hbo'], tsv_row['en'] )
 
-    if not toTitleFlag:
-        return result
-    # else
+    # Find the index of the first Hebrew character in the INPUT string (will be the same for the output string)
     for first_Hebrew_index,char in enumerate(input):
         if 'HEBREW' in unicodedata.name(char):
             break
+    else:
+        logging.warning( f"transliterate_Hebrew failed to find any Hebrew in '{input}'")
+        return result
+
+    # Correct dagesh in first letter giving double letters
+    if result[first_Hebrew_index] == result[first_Hebrew_index+1]:
+        result = f'{result[:first_Hebrew_index]}{result[first_Hebrew_index+1:]}' # Remove the first of the duplicate letters
+
+    if not toTitleFlag:
+        return result
     if result[first_Hebrew_index] == 'ʦ':
         return result.replace( 'ʦ', 'Ts', 1 ) # This digraph doesn't have an UPPERCASE form
     # print(f"Title-casing '{result}' '{result[first_Hebrew_index:first_Hebrew_index+2]}' to '{result[:first_Hebrew_index+2].title()}'")
