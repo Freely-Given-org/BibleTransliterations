@@ -42,9 +42,9 @@ LAST_MODIFIED_DATE = '2022-08-31' # by RJH
 SHORT_PROGRAM_NAME = "BibleTransliterations"
 PROGRAM_NAME = "Bible Transliterations handler"
 PROGRAM_VERSION = '0.07'
-programNameVersion = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
+PROGRAM_NAME_VERSION = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
 
-debuggingThisModule = False
+DEBUGGING_THIS_MODULE = False
 
 
 
@@ -59,12 +59,12 @@ def load_transliteration_table(which) -> bool:
 
     # Remove BOM
     if tsv_lines[0].startswith("\ufeff"):
-        vPrint('Quiet', debuggingThisModule, f"  Removing Byte Order Marker (BOM) from start of {which} TSV file…")
+        vPrint('Quiet', DEBUGGING_THIS_MODULE, f"  Removing Byte Order Marker (BOM) from start of {which} TSV file…")
         tsv_lines[0] = tsv_lines[0][1:]
 
     # Get the headers before we start
     original_column_headers = [ header for header in tsv_lines[0].strip().split('\t') ]
-    dPrint('Verbose', debuggingThisModule, f"  Original transliteration column headers: ({len(original_column_headers)}): {original_column_headers}")
+    dPrint('Verbose', DEBUGGING_THIS_MODULE, f"  Original transliteration column headers: ({len(original_column_headers)}): {original_column_headers}")
 
     # Read, check the number of columns, and summarise row contents all in one go
     dict_reader = DictReader(tsv_lines, delimiter='\t')
@@ -92,7 +92,7 @@ def load_transliteration_table(which) -> bool:
     if which=='Hebrew':
         destination = hebrew_tsv_rows = sorted(tsv_rows, key=lambda k:-len(k[source_language_code]))
     else: destination = greek_tsv_rows = sorted(tsv_rows, key=lambda k:-len(k[source_language_code]))
-    vPrint('Quiet', debuggingThisModule, f"  Loaded {len(destination):,} '{which}' transliteration data rows.")
+    vPrint('Quiet', DEBUGGING_THIS_MODULE, f"  Loaded {len(destination):,} '{which}' transliteration data rows.")
     return True
 # end of load_transliteration_table()
 
@@ -106,7 +106,7 @@ def transliterate_Hebrew(input:str, toTitleFlag=False) -> str:
         but it really needs to be completely rewritten.
         See https://en.wikipedia.org/wiki/Romanization_of_Hebrew.
     """
-    fnPrint( debuggingThisModule, f"transliterate_Hebrew({input}, {toTitleFlag})")
+    fnPrint( DEBUGGING_THIS_MODULE, f"transliterate_Hebrew({input}, {toTitleFlag})")
     result = input
 
     # Transliterate Hebrew letters to English
@@ -238,7 +238,7 @@ def check_text(text:str):
     """
     """
     for l,line in enumerate(text.split('\n'), start=1):
-        vPrint( 'Info', debuggingThisModule, line )
+        vPrint( 'Info', DEBUGGING_THIS_MODULE, line )
         result = check_line( line )
         if result is not True:
             c, char, char_name = result
@@ -252,18 +252,18 @@ def briefDemo() -> None:
     """
     Main program to handle command line parameters and then run what they want.
     """
-    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
+    BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
 
-    vPrint( 'Normal', debuggingThisModule, "\nTesting Genesis 1 in Hebrew…" )
+    vPrint( 'Normal', DEBUGGING_THIS_MODULE, "\nTesting Genesis 1 in Hebrew…" )
     load_transliteration_table('Hebrew')
     result = transliterate_Hebrew( Genesis_1 )
-    vPrint( 'Verbose', debuggingThisModule, result )
+    vPrint( 'Verbose', DEBUGGING_THIS_MODULE, result )
     if not check_text(result): have_bad_transliteration
 
-    vPrint( 'Normal', debuggingThisModule, "\nTesting Matthew 1 in Greek…" )
+    vPrint( 'Normal', DEBUGGING_THIS_MODULE, "\nTesting Matthew 1 in Greek…" )
     load_transliteration_table('Greek')
     result = transliterate_Greek( Matthew_1 )
-    vPrint( 'Verbose', debuggingThisModule, result )
+    vPrint( 'Verbose', DEBUGGING_THIS_MODULE, result )
     if not check_text(result): have_bad_transliteration
 # end of BibleTransliterations.briefDemo
 
@@ -271,35 +271,35 @@ def fullDemo() -> None:
     """
     Full demo to check class is working
     """
-    BibleOrgSysGlobals.introduceProgram( __name__, programNameVersion, LAST_MODIFIED_DATE )
+    BibleOrgSysGlobals.introduceProgram( __name__, PROGRAM_NAME_VERSION, LAST_MODIFIED_DATE )
 
     source_folderpath = Path( '../../Forked/bibletags-usfm/usfm/uhb/' )
-    vPrint( 'Normal', debuggingThisModule, f"\nTesting {source_folderpath} in Hebrew…" )
+    vPrint( 'Normal', DEBUGGING_THIS_MODULE, f"\nTesting {source_folderpath} in Hebrew…" )
     load_transliteration_table('Hebrew')
     for entry in source_folderpath.iterdir():
-        vPrint( 'Quiet', debuggingThisModule, f"  Loading {entry.name}…" )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"  Loading {entry.name}…" )
 
         with open( entry, 'rt', encoding='utf-8' ) as source_file:
             source_text = source_file.read()
 
         result = transliterate_Hebrew( source_text )
-        vPrint( 'Verbose', debuggingThisModule, result )
+        vPrint( 'Verbose', DEBUGGING_THIS_MODULE, result )
 
         if not check_text(result):
             logging.critical( f"Failed in {entry.name}!" )
             bad_transliteration
 
     source_folderpath = Path( '../../CNTR-GNT/derivedFormats/USFM/PlainText/' )
-    vPrint( 'Normal', debuggingThisModule, f"\nTesting {source_folderpath} in Greek…" )
+    vPrint( 'Normal', DEBUGGING_THIS_MODULE, f"\nTesting {source_folderpath} in Greek…" )
     load_transliteration_table('Greek')
     for entry in source_folderpath.iterdir():
-        vPrint( 'Quiet', debuggingThisModule, f"  Loading {entry.name}…" )
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"  Loading {entry.name}…" )
 
         with open( entry, 'rt', encoding='utf-8' ) as source_file:
             source_text = source_file.read()
 
         result = transliterate_Greek( source_text )
-        vPrint( 'Verbose', debuggingThisModule, result )
+        vPrint( 'Verbose', DEBUGGING_THIS_MODULE, result )
 
         if not check_text(result):
             logging.critical( f"Failed in {entry.name}!" )
