@@ -3,12 +3,14 @@ hbo	Meta	en	Comment
 אּ	Alef	'
 ב	Bet	v
 בּ	Bet	b
+בַּ		bba	# Patah is (wrongly?) BEFORE dagesh
 בָּ		bbā	# Qamats is (wrongly?) BEFORE dagesh
 בֶּ		bbe	# Segol is (wrongly?) BEFORE dagesh
 בִּ		bbi	# Hiriq is (wrongly?) BEFORE dagesh
 בֹּ		bbo	# Holam is (wrongly?) BEFORE dagesh
 ג	Gimel	g
 גּ	Gimel	g
+גַּ		gga	# Patah is (wrongly?) BEFORE dagesh
 גָּ		ggā	# Qamats is (wrongly?) BEFORE dagesh
 גֵּ		ggē	# Tsere is (wrongly?) BEFORE dagesh
 גֹּ		ggo	# Holam is (wrongly?) BEFORE dagesh
@@ -40,6 +42,7 @@ hbo	Meta	en	Comment
 כּ	Kaf	k
 כִּ		kki	# Hiriq is (wrongly?) BEFORE dagesh
 כִּי		kkī	# Hiriq is (wrongly?) BEFORE dagesh BEFORE YOD
+כֹּ		kko	# Holam is (wrongly?) BEFORE dagesh
 ך	KafFinal	k
 ךּ	KafFinal	k
 ל	Lamed	l
