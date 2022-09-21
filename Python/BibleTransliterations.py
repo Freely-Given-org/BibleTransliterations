@@ -38,7 +38,7 @@ from BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 
 
 
-LAST_MODIFIED_DATE = '2022-08-31' # by RJH
+LAST_MODIFIED_DATE = '2022-09-21' # by RJH
 SHORT_PROGRAM_NAME = "BibleTransliterations"
 PROGRAM_NAME = "Bible Transliterations handler"
 PROGRAM_VERSION = '0.07'
@@ -125,6 +125,7 @@ def transliterate_Hebrew(input:str, toTitleFlag=False) -> str:
     # Correct dagesh in first letter giving double letters
     if result[first_Hebrew_index] == result[first_Hebrew_index+1]:
         result = f'{result[:first_Hebrew_index]}{result[first_Hebrew_index+1:]}' # Remove the first of the duplicate letters
+        # NOTE: This doesn't work for consecutive words
 
     if not toTitleFlag:
         return result
