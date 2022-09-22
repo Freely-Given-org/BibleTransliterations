@@ -3,6 +3,7 @@ hbo	Meta	en	Comment
 אּ	Alef	'
 ב	Bet	v
 בּ	Bet	b
+בְּ		bbə	# Sheva is (wrongly?) BEFORE dagesh
 בַּ		bba	# Patah is (wrongly?) BEFORE dagesh
 בָּ		bbā	# Qamats is (wrongly?) BEFORE dagesh
 בֶּ		bbe	# Segol is (wrongly?) BEFORE dagesh
@@ -13,6 +14,7 @@ hbo	Meta	en	Comment
 גַּ		gga	# Patah is (wrongly?) BEFORE dagesh
 גָּ		ggā	# Qamats is (wrongly?) BEFORE dagesh
 גֵּ		ggē	# Tsere is (wrongly?) BEFORE dagesh
+גִּ		ggi	# Hiriq is (wrongly?) BEFORE dagesh
 גֹּ		ggo	# Holam is (wrongly?) BEFORE dagesh
 גֻּ		ggu	# Qubuts is (wrongly?) BEFORE dagesh
 ד	Dalet	d
@@ -88,6 +90,7 @@ hbo	Meta	en	Comment
 שַׂ		sa	# Patah is (wrongly?) BEFORE sin dot
 שָׂ		sā	# Qamats is (wrongly?) BEFORE sin dot
 שֶׂ		se	# Segol is (wrongly?) BEFORE sin dot
+שָּׂ		ssā	# Qamats is (wrongly?) BEFORE dagesh which is BEFORE sin dot
 שׁ	Shin	sh
 שׁ	Shin	sh
 שּׁ	Shin	shsh

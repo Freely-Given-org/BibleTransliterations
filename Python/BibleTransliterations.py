@@ -38,10 +38,10 @@ from BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 
 
 
-LAST_MODIFIED_DATE = '2022-09-21' # by RJH
+LAST_MODIFIED_DATE = '2022-09-22' # by RJH
 SHORT_PROGRAM_NAME = "BibleTransliterations"
 PROGRAM_NAME = "Bible Transliterations handler"
-PROGRAM_VERSION = '0.07'
+PROGRAM_VERSION = '0.08'
 PROGRAM_NAME_VERSION = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
 
 DEBUGGING_THIS_MODULE = False
@@ -110,9 +110,12 @@ def transliterate_Hebrew(input:str, toTitleFlag=False) -> str:
     result = input
 
     # Transliterate Hebrew letters to English
-    for tsv_row in hebrew_tsv_rows:
-        # print( f"  {tsv_row=}")
-        result = result.replace( tsv_row['hbo'], tsv_row['en'] )
+    if 'יְהוָֹה' in result: # special case
+        result = result.replace( 'יְהוָֹה', 'yahweh' ) # vowels for adonai
+    else:
+        for tsv_row in hebrew_tsv_rows:
+            # print( f"  {tsv_row=}")
+            result = result.replace( tsv_row['hbo'], tsv_row['en'] )
 
     # Find the index of the first Hebrew character in the INPUT string (will be the same for the output string)
     for first_Hebrew_index,char in enumerate(input):
