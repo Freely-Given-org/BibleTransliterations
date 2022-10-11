@@ -53,7 +53,8 @@ hbo	Meta	en	Comment
 כִּי		kkī	# Hiriq is (wrongly?) BEFORE dagesh BEFORE YOD
 כֹּ		kko	# Holam is (wrongly?) BEFORE dagesh
 ך	KafFinal	k
-ךּ	KafFinal	k
+ךּ	KafFinalDagesh	k
+ךְ	KafFinalShva	k
 ל	Lamed	l
 לּ	Lamed	ll
 מ	Mem	m
@@ -113,11 +114,11 @@ hbo	Meta	en	Comment
 ְ	Shva	ə
 ַ	Patah	a
 ָ	Qamats	ā
-ׇ	QamatsQatan	ā
+ׇ	QamatsQatan	o
 ֿ	Rafe
 ֶ	Segol	e
 ֲ	HatafPatah	a
-ֳ	HatafQamats	a
+ֳ	HatafQamats	o
 ֱ	HatafSegol	e
 ֵ	Tsere	ē
 ִ	Hiriq	i
