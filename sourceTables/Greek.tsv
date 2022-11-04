@@ -7,8 +7,8 @@ x-grc-koine	Meta	en	Comment
 Ἅ		Ha
 Ἃ		Ha
 ᾍ		Ha
-Αα		A'a	# Ensure it's seen as two syllables -- not as long a
-Ἀα		A'a	# Ensure it's seen as two syllables -- not as long a
+Αα		Aʼa	# Ensure it's seen as two syllables -- not as long a
+Ἀα		Aʼa	# Ensure it's seen as two syllables -- not as long a
 α	alpha	a	# Can be short or long
 ά		a
 ὰ		a
@@ -24,10 +24,10 @@ x-grc-koine	Meta	en	Comment
 ἁ		ha
 ἃ		ha
 ἅ		ha
-αα		a'a	# Ensure it's seen as two syllables -- not as long a
-αά		a'a	# Ensure it's seen as two syllables -- not as long a
-αὰ		a'a	# Ensure it's seen as two syllables -- not as long a
-αοὺ		a'ou	# Ensure it's seen as two syllables -- not as long a
+αα		aʼa	# Ensure it's seen as two syllables -- not as long a
+αά		aʼa	# Ensure it's seen as two syllables -- not as long a
+αὰ		aʼa	# Ensure it's seen as two syllables -- not as long a
+αοὺ		aʼou	# Ensure it's seen as two syllables -- not as long a
 Β	BETA	B
 β	beta	b
 Γ	GAMMA	G
@@ -49,38 +49,38 @@ x-grc-koine	Meta	en	Comment
 ἑ		he
 ἕ		he
 ἓ		he
-εε		e'e	# Ensure it's seen as two syllables -- not as long a
-εέ		e'e	# Ensure it's seen as two syllables -- not as long a
+εε		eʼe	# Ensure it's seen as two syllables -- not as long a
+εέ		eʼe	# Ensure it's seen as two syllables -- not as long a
 Ζ	ZETA	Z
 ζ	zeta	z
-Η	ETA	Ē
-Ἠ		Ē
-Ἦ		Ē
-Ἤ		Ē
-Ἢ		Ē
-ᾜ		Ē
-Ἡ		Hē
-Ἥ		Hē
-η	eta	ē
-ή		ē
-ὴ		ē
-ῆ		ē
-ἦ		ē
-ἢ		ē
-ἠ		ē
-ἤ		ē
-ᾔ		ē
-ῃ		ē
-ᾐ		ē
-ῇ		ē
-ᾖ		ē
-ῄ		ē
-ἡ		hē
-ἧ		hē
-ᾗ		hē
-ἥ		hē
-ἣ		hē
-ᾑ		hē
+Η	ETA	Aʸ
+Ἠ		Aʸ
+Ἦ		Aʸ
+Ἤ		Aʸ
+Ἢ		Aʸ
+ᾜ		Aʸ
+Ἡ		Haʸ
+Ἥ		Haʸ
+η	eta	aʸ
+ή		aʸ
+ὴ		aʸ
+ῆ		aʸ
+ἦ		aʸ
+ἢ		aʸ
+ἠ		aʸ
+ἤ		aʸ
+ᾔ		aʸ
+ῃ		aʸ
+ᾐ		aʸ
+ῇ		aʸ
+ᾖ		aʸ
+ῄ		aʸ
+ἡ		haʸ
+ἧ		haʸ
+ᾗ		haʸ
+ἥ		haʸ
+ἣ		haʸ
+ᾑ		haʸ
 Θ	THETA	Th
 θ	theta	th
 Ι	IOTA	I	# Can be short or long
@@ -90,7 +90,7 @@ x-grc-koine	Meta	en	Comment
 Ἵ		Hi
 Ἰα		Ya
 Ἰά		Ya
-Ἰη		Yē
+Ἰη		Yaʸ
 Ἰο		Yo
 Ἰό		Yo
 Ἰω		Yō
@@ -132,7 +132,7 @@ x-grc-koine	Meta	en	Comment
 ὁ		ho
 ὅ		ho
 ὃ		ho
-οό		o'o	# Ensure it's seen as two syllables -- not as long o
+οό		oʼo	# Ensure it's seen as two syllables -- not as long o
 Π	PI	P
 π	pi	p
 Ρ	RHO	R
