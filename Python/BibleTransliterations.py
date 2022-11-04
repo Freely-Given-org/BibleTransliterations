@@ -38,10 +38,10 @@ from BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 
 
 
-LAST_MODIFIED_DATE = '2022-09-22' # by RJH
+LAST_MODIFIED_DATE = '2022-10-25' # by RJH
 SHORT_PROGRAM_NAME = "BibleTransliterations"
 PROGRAM_NAME = "Bible Transliterations handler"
-PROGRAM_VERSION = '0.08'
+PROGRAM_VERSION = '0.21'
 PROGRAM_NAME_VERSION = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
 
 DEBUGGING_THIS_MODULE = False
@@ -59,7 +59,7 @@ def load_transliteration_table(which) -> bool:
 
     # Remove BOM
     if tsv_lines[0].startswith("\ufeff"):
-        vPrint('Quiet', DEBUGGING_THIS_MODULE, f"  Removing Byte Order Marker (BOM) from start of {which} TSV file…")
+        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"  Removing Byte Order Marker (BOM) from start of {which} TSV file…")
         tsv_lines[0] = tsv_lines[0][1:]
 
     # Get the headers before we start
@@ -109,14 +109,6 @@ def transliterate_Hebrew(input:str, toTitleFlag=False) -> str:
     fnPrint( DEBUGGING_THIS_MODULE, f"transliterate_Hebrew({input}, {toTitleFlag})")
     result = input
 
-    # Transliterate Hebrew letters to English
-    if 'יְהוָֹה' in result: # special case
-        result = result.replace( 'יְהוָֹה', 'yahweh' ) # vowels for adonai
-    else:
-        for tsv_row in hebrew_tsv_rows:
-            # print( f"  {tsv_row=}")
-            result = result.replace( tsv_row['hbo'], tsv_row['en'] )
-
     # Find the index of the first Hebrew character in the INPUT string (will be the same for the output string)
     for first_Hebrew_index,char in enumerate(input):
         if 'HEBREW' in unicodedata.name(char):
@@ -125,10 +117,19 @@ def transliterate_Hebrew(input:str, toTitleFlag=False) -> str:
         logging.warning( f"transliterate_Hebrew failed to find any Hebrew in '{input}'")
         return result
 
-    # Correct dagesh in first letter giving double letters
-    if result[first_Hebrew_index] == result[first_Hebrew_index+1]:
-        result = f'{result[:first_Hebrew_index]}{result[first_Hebrew_index+1:]}' # Remove the first of the duplicate letters
-        # NOTE: This doesn't work for consecutive words
+    # Transliterate Hebrew letters to English
+    if 'יְהוָֹה' in result: # special case
+        result = result.replace( 'יְהוָֹה', 'yahweh' ) # vowels for adonai
+    else:
+        for tsv_row in hebrew_tsv_rows:
+            # print( f"  {tsv_row=}")
+            result = result.replace( tsv_row['hbo'], tsv_row['en'] )
+
+    try: # Correct dagesh in first letter giving double letters
+        if result[first_Hebrew_index] == result[first_Hebrew_index+1]:
+            result = f'{result[:first_Hebrew_index]}{result[first_Hebrew_index+1:]}' # Remove the first of the duplicate letters
+            # NOTE: This doesn't work for consecutive words
+    except IndexError: pass # probably a very short Hebrew string
 
     if not toTitleFlag:
         return result
@@ -142,10 +143,6 @@ def transliterate_Greek(input:str) -> str:
     """
     """
     result = input
-    for tsv_row in greek_tsv_rows:
-        # print( f"  {tsv_row=}")
-        result = result.replace( tsv_row['x-grc-koine'], tsv_row['en'] )
-
     # Find the index of the first Greek character in the INPUT string (will be the same for the output string)
     for first_Greek_index,char in enumerate(input):
         if 'GREEK' in unicodedata.name(char):
@@ -153,6 +150,14 @@ def transliterate_Greek(input:str) -> str:
     else:
         logging.warning( f"transliterate_Greek failed to find any Greek in '{input}'")
         return result
+
+    for tsv_row in greek_tsv_rows:
+        # print( f"  {tsv_row=}")
+        result = result.replace( tsv_row['x-grc-koine'], tsv_row['en'] )
+
+    # Transform aui to awi (esp. Dauid to Dawid)
+    if 'aui' in result[first_Greek_index:]:
+        result = f"{result[:first_Greek_index]}{result[first_Greek_index:].replace('aui','awi')}"
 
     # Transform ie to ye at start
     for inChars,outChars in ( ('ie','ye'), ('Ie','Ye') ):
