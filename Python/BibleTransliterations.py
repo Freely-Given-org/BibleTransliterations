@@ -5,7 +5,7 @@
 #
 # Module handling BibleTransliterations
 #
-# Copyright (C) 2022 Robert Hunt
+# Copyright (C) 2022-2023 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org+BOS@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -25,7 +25,8 @@
 """
 Module handling BibleTransliterations.
 
-
+CHANGELOG:
+    2023-03-23 Not sure why unicodedata.name(LF) fails, but catch it now
 """
 from gettext import gettext as _
 from pathlib import Path
@@ -38,10 +39,10 @@ from BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 
 
 
-LAST_MODIFIED_DATE = '2022-10-25' # by RJH
+LAST_MODIFIED_DATE = '2023-03-23' # by RJH
 SHORT_PROGRAM_NAME = "BibleTransliterations"
 PROGRAM_NAME = "Bible Transliterations handler"
-PROGRAM_VERSION = '0.21'
+PROGRAM_VERSION = '0.22'
 PROGRAM_NAME_VERSION = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
 
 DEBUGGING_THIS_MODULE = False
@@ -111,8 +112,10 @@ def transliterate_Hebrew(input:str, toTitleFlag=False) -> str:
 
     # Find the index of the first Hebrew character in the INPUT string (will be the same for the output string)
     for first_Hebrew_index,char in enumerate(input):
-        if 'HEBREW' in unicodedata.name(char):
-            break
+        try:
+            if 'HEBREW' in unicodedata.name(char):
+                break
+        except ValueError: continue
     else:
         logging.warning( f"transliterate_Hebrew failed to find any Hebrew in '{input}'")
         return result
@@ -145,8 +148,11 @@ def transliterate_Greek(input:str) -> str:
     result = input
     # Find the index of the first Greek character in the INPUT string (will be the same for the output string)
     for first_Greek_index,char in enumerate(input):
-        if 'GREEK' in unicodedata.name(char):
-            break
+        # print( f"{first_Greek_index} ({ord(char)}) '{char}' from '{input}'")
+        try:
+            if 'GREEK' in unicodedata.name(char):
+                break
+        except ValueError: continue
     else:
         logging.warning( f"transliterate_Greek failed to find any Greek in '{input}'")
         return result
@@ -237,7 +243,9 @@ def check_line(line:str):
     for c,char in enumerate(line, start=1):
         if char in ' ʼ,.?!:;-–/\\1234567890“”‘’()¶…©':
             continue
-        char_name = unicodedata.name(char)
+        try:
+            char_name = unicodedata.name(char)
+        except ValueError: continue
         if 'GREEK' in char_name or 'HEBREW' in char_name:
             return c, char, char_name
     return True
