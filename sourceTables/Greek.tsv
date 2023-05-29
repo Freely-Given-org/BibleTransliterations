@@ -41,6 +41,7 @@ x-grc-koine	Meta	en	Comment
 Ἑ		He
 Ἕ		He
 Ἓ		He
+Εὑ		Heu
 ε	epsilon	e
 έ		e
 ὲ		e
@@ -51,6 +52,7 @@ x-grc-koine	Meta	en	Comment
 ἓ		he
 εε		eʼe	# Ensure it's seen as two syllables -- not as long a
 εέ		eʼe	# Ensure it's seen as two syllables -- not as long a
+εὑ		heu
 Ζ	ZETA	Z
 ζ	zeta	z
 Η	ETA	Aʸ
