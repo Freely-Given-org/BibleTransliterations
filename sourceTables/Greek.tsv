@@ -41,7 +41,6 @@ x-grc-koine	Meta	en	Comment
 Ἑ		He
 Ἕ		He
 Ἓ		He
-Εὑ		Heu
 ε	epsilon	e
 έ		e
 ὲ		e
@@ -52,7 +51,6 @@ x-grc-koine	Meta	en	Comment
 ἓ		he
 εε		eʼe	# Ensure it's seen as two syllables -- not as long a
 εέ		eʼe	# Ensure it's seen as two syllables -- not as long a
-εὑ		heu
 Ζ	ZETA	Z
 ζ	zeta	z
 Η	ETA	Aʸ
@@ -125,7 +123,6 @@ x-grc-koine	Meta	en	Comment
 Ὁ		Ho
 Ὃ		Ho
 Ὅ		Ho
-Οὕ		Hou
 ο	omicron	o
 ό		o
 ὸ		o
@@ -135,7 +132,6 @@ x-grc-koine	Meta	en	Comment
 ὁ		ho
 ὅ		ho
 ὃ		ho
-οὕ		hou
 οό		oʼo	# Ensure it's seen as two syllables -- not as long o
 Π	PI	P
 π	pi	p
@@ -198,18 +194,40 @@ x-grc-koine	Meta	en	Comment
 ᾧ		hō
 ;		?	# Must be above the following line
 ·		;
+Αἵ		Hai	# Dipthongs with rough breathings
+Αἱ		Hai
 αἳ		hai
 αἷ		hai
+αἵ		hai
+αἱ		hai
+Αὕ		Hau
+Αὑ		Hau
 αὗ		hau
+αὕ		hau
+αὑ		hau
 Εἷ		Hei
+Εἵ		Hei
+Εἱ		Hei
 εἷ		hei
+εἵ		hei
+εἱ		hei
+Εὕ		Heu
 Εὗ		Heu
+Εὑ		Heu
 εὗ		heu
-οἱ		hoi
+εὕ		heu
+εὑ		heu
+Οἵ		Hoi
+Οἱ		Hoi
 οἳ		hoi
 οἷ		hoi
+οἵ		hoi
+οἱ		hoi
 Οὓ		Hou
 Οὗ		Hou
+Οὕ		Hou
 οὓ		hou
 οὗ		hou
+οὕ		hou
+οὑ		hou
 υἱ		hui
