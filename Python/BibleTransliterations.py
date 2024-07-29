@@ -5,7 +5,7 @@
 #
 # Module handling BibleTransliterations
 #
-# Copyright (C) 2022-2023 Robert Hunt
+# Copyright (C) 2022-2024 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org+BOS@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -39,10 +39,10 @@ from BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 
 
 
-LAST_MODIFIED_DATE = '2023-03-23' # by RJH
+LAST_MODIFIED_DATE = '2024-07-26' # by RJH
 SHORT_PROGRAM_NAME = "BibleTransliterations"
 PROGRAM_NAME = "Bible Transliterations handler"
-PROGRAM_VERSION = '0.22'
+PROGRAM_VERSION = '0.28'
 PROGRAM_NAME_VERSION = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
 
 DEBUGGING_THIS_MODULE = False
@@ -97,18 +97,20 @@ def load_transliteration_table(which) -> bool:
     return True
 # end of load_transliteration_table()
 
-def transliterate_Hebrew(input:str, toTitleFlag=False) -> str:
+
+def transliterate_Hebrew(input:str, capitaliseHebrew=False) -> str:
     """
     Hebrew doesn't have capital letters,
         so if the calling function knows it's a name or at the beginning of a sentence,
-        we may need to capitalise it.
+        we may need to capitalise THE HEBREW PART of the input.
+        (It's like this, so if the Hebrew is inside an html span or something,
+            then only the first Hebrew word is capitalised, not 'Span'.)
 
     TODO: This is only a temporary function that sort of works
         but it really needs to be completely rewritten.
         See https://en.wikipedia.org/wiki/Romanization_of_Hebrew.
     """
-    fnPrint( DEBUGGING_THIS_MODULE, f"transliterate_Hebrew({input}, {toTitleFlag})")
-    result = input
+    fnPrint( DEBUGGING_THIS_MODULE, f"transliterate_Hebrew({input}, {capitaliseHebrew})")
 
     # Find the index of the first Hebrew character in the INPUT string (will be the same for the output string)
     for first_Hebrew_index,char in enumerate(input):
@@ -118,29 +120,203 @@ def transliterate_Hebrew(input:str, toTitleFlag=False) -> str:
         except ValueError: continue
     else:
         logging.warning( f"transliterate_Hebrew failed to find any Hebrew in '{input}'")
-        return result
+        return input
+
+    for past_Hebrew_index,char in enumerate(reversed(input)):
+        try:
+            if 'HEBREW' in unicodedata.name(char):
+                break
+        except ValueError: continue
+    past_Hebrew_index = len(input) - past_Hebrew_index
+    # print( f"({len(input)}) {input=} {first_Hebrew_index=} {past_Hebrew_index=}")
+
+    # Now extract the Hebrew segment of the input
+    hebrewInput = input[first_Hebrew_index:past_Hebrew_index]
+    # print( f"({len(hebrewInput)}) {hebrewInput=} {first_Hebrew_index=} {past_Hebrew_index=}")
 
     # Transliterate Hebrew letters to English
-    if 'יְהוָֹה' in result: # special case
-        result = result.replace( 'יְהוָֹה', 'yahweh' ) # vowels for adonai
-    else:
-        for tsv_row in hebrew_tsv_rows:
-            # print( f"  {tsv_row=}")
-            result = result.replace( tsv_row['hbo'], tsv_row['en'] )
+    transliteratedHebrewInput = hebrewInput
+    for tsv_row in hebrew_tsv_rows:
+        transliteratedHebrewInput = transliteratedHebrewInput.replace( tsv_row['hbo'], tsv_row['en'] )
 
+    # Fix YHWH to our desired 'yahweh'
+    # TODO: What if it's in a compound like v... b... m... ?
+    # transliteratedHebrewInput = transliteratedHebrewInput.replace( 'yəhvāh', 'yahweh' ) # vowels for adonai -- TODO: Could this be over-reaching, i.e., in the middle of some other word ???
+
+    # Fix something like 'שִׁילֹה' which becomes 'Shiyloh' but shouldn't have that 'y'
+    # TODO: Do we need something similar for 'v'?
+    searchStartIndex = 0
+    for _safetyCount in range( 2_000 ): # 1880 wasn't enough for one of the Hebrew word pages
+        try: ixIY = transliteratedHebrewInput.index( 'iy', searchStartIndex )
+        except ValueError: break
+        try: nextChar = transliteratedHebrewInput[ixIY+2]
+        except IndexError: break # it was at the end of the word/string
+        if nextChar in 'bdfghklmnpqrsştţvz':
+            transliteratedHebrewInput = f'{transliteratedHebrewInput[:ixIY+1]}{transliteratedHebrewInput[ixIY+2:]}' # Delete the y
+        searchStartIndex = ixIY + 2
+    else:
+        logging.critical( f"Not enough {_safetyCount} IY {transliteratedHebrewInput.count( 'iy' )} loop iterations for ({len(hebrewInput)}) {hebrewInput[:200]=}… from {input[:800]=}…" )
+        not_enough_loop_iterations_in_transliterateHebrew
+    
     try: # Correct dagesh in first letter giving double letters
-        if result[first_Hebrew_index] == result[first_Hebrew_index+1]:
-            result = f'{result[:first_Hebrew_index]}{result[first_Hebrew_index+1:]}' # Remove the first of the duplicate letters
+        if transliteratedHebrewInput[0] == transliteratedHebrewInput[1]:
+            # assert transliteratedHebrewInput[0] in 'bdkt', f"Doubled initial letters {transliteratedHebrewInput=} from {hebrewInput=}"
+            transliteratedHebrewInput = transliteratedHebrewInput[1:] # Remove the first of the duplicate letters
             # NOTE: This doesn't work for consecutive words
     except IndexError: pass # probably a very short Hebrew string
 
-    if not toTitleFlag:
-        return result
-    if result[first_Hebrew_index] == 'ʦ':
-        return result.replace( 'ʦ', 'Ts', 1 ) # This digraph doesn't have an UPPERCASE form
-    # print(f"Title-casing '{result}' '{result[first_Hebrew_index:first_Hebrew_index+2]}' to '{result[:first_Hebrew_index+2].title()}'")
-    return f'{result[:first_Hebrew_index]}{result[first_Hebrew_index:first_Hebrew_index+2].title()}{result[first_Hebrew_index+2:]}' # Title case, but don't want something like Rəḩavə'Ām
+    # Now to handle everything properly, we have to post-process each transliterated Hebrew word
+    # We get cleaned words, but do the substitutions on the actual transliterated string
+    cleanedTransliteratedHebrew = transliteratedHebrewInput.replace( ',',' ' ).replace( '.',' ' ).replace( '-',' ' ) \
+                                                           .replace( 'htm#Top">', ' ' ).replace( 'htm">', ' ' ).replace( '</a>', '' ) \
+                                                           .replace( '\n',' ') \
+                                                           .replace( '   ',' ' ).replace( '  ',' ' ) \
+                                                           .rstrip()
+    for cc, cleanedTransliteratedHebrewWord in enumerate( cleanedTransliteratedHebrew.split( ' ' ) ):
+        assert cleanedTransliteratedHebrewWord, f"transliterate_Hebrew A{cc}: {cleanedTransliteratedHebrew=}"
+        if cleanedTransliteratedHebrewWord.isdigit(): continue
+        if len(cleanedTransliteratedHebrewWord) < 2: continue
+        dPrint('Verbose', DEBUGGING_THIS_MODULE, f"  transliterate_Hebrew B{cc}: {cleanedTransliteratedHebrewWord=}")
+
+        # Handle bad dagesh consonant doubling at the beginning of words
+        if cleanedTransliteratedHebrewWord[0] == cleanedTransliteratedHebrewWord[1]:
+            # assert cleanedTransliteratedHebrewWord[0] in 'bdkt', f"Doubled initial letters {transliteratedHebrewInput=} from {hebrewInput=}"
+            dPrint('Info', DEBUGGING_THIS_MODULE, f"Replacing duplicated initial letters: {cleanedTransliteratedHebrewWord=}")
+            if cc == 0: # it's the first word
+                transliteratedHebrewInput = transliteratedHebrewInput.replace( cleanedTransliteratedHebrewWord, cleanedTransliteratedHebrewWord[1:], 1 ) # Remove the first of the duplicate letters but only ONCE
+            else: # it's not the first word, so we can probably precede it with a space (assuming nothing got cleaned from the beginning of the word already) so we don't over-reach
+                # Remove the first of the duplicate letters
+                transliteratedHebrewInput = transliteratedHebrewInput.replace( f' {cleanedTransliteratedHebrewWord}', f' {cleanedTransliteratedHebrewWord[1:]}', 1 ) \
+                                                                                .replace( f'>{cleanedTransliteratedHebrewWord}', f'>{cleanedTransliteratedHebrewWord[1:]}', 1 )
+            cleanedTransliteratedHebrewWord = cleanedTransliteratedHebrewWord[1:] # in case it needs more fixes below
+        elif cleanedTransliteratedHebrewWord.startswith( 'shsh' ):
+            dPrint('Info', DEBUGGING_THIS_MODULE, f"Replacing duplicated initial letters: {cleanedTransliteratedHebrewWord=}")
+            if cc == 0: # it's the first word
+                transliteratedHebrewInput = transliteratedHebrewInput.replace( cleanedTransliteratedHebrewWord, cleanedTransliteratedHebrewWord[2:], 1 ) # Remove the first of the duplicate sh but only ONCE
+            else: # it's not the first word, so we can probably precede it with a space (assuming nothing got cleaned from the beginning of the word already) so we don't over-reach
+                 # Remove the first of the duplicate letters
+                transliteratedHebrewInput = transliteratedHebrewInput.replace( f' {cleanedTransliteratedHebrewWord}', f' {cleanedTransliteratedHebrewWord[2:]}', 1 ) \
+                                                                        .replace( f'>{cleanedTransliteratedHebrewWord}', f'>{cleanedTransliteratedHebrewWord[2:]}', 1 )
+            cleanedTransliteratedHebrewWord = cleanedTransliteratedHebrewWord[2:] # in case it needs more fixes below
+
+        # Handle final ḩa after we removed the line: חַ	HetPatah	aḩ	# Not ḩa, e.g., in 'נֹ֔חַ' (Noaḩ) IS THIS TOO WIDE, i.e., should only be at WORD END?
+        if cleanedTransliteratedHebrewWord.endswith( 'ḩa' ): # Swap the final two letters
+            dPrint('Info', DEBUGGING_THIS_MODULE, f"Fixing final two letters: {cleanedTransliteratedHebrewWord=}")
+            transliteratedHebrewInput = transliteratedHebrewInput.replace( f'{cleanedTransliteratedHebrewWord}', f'{cleanedTransliteratedHebrewWord[:-2]}aḩ' ) \
+                                        if transliteratedHebrewInput.endswith( cleanedTransliteratedHebrewWord ) \
+                                    else transliteratedHebrewInput.replace( f'{cleanedTransliteratedHebrewWord} ', f'{cleanedTransliteratedHebrewWord[:-2]}aḩ ', 1 ) \
+                                                                    .replace( f'{cleanedTransliteratedHebrewWord}<', f'{cleanedTransliteratedHebrewWord[:-2]}aḩ<', 1 )
+    assert not transliteratedHebrewInput.startswith( 'bb' ) and ' bb' not in transliteratedHebrewInput and '>bb' not in transliteratedHebrewInput, f"{transliteratedHebrewInput=} from {hebrewInput=}"
+    assert not transliteratedHebrewInput.startswith( 'dd' ) and ' dd' not in transliteratedHebrewInput and '>dd' not in transliteratedHebrewInput, f"{transliteratedHebrewInput=} from {hebrewInput=}"
+    assert not transliteratedHebrewInput.startswith( 'kk' ) and ' kk' not in transliteratedHebrewInput and '>kk' not in transliteratedHebrewInput, f"{transliteratedHebrewInput=} from {hebrewInput=}"
+    assert not transliteratedHebrewInput.startswith( 'tt' ) and ' tt' not in transliteratedHebrewInput and '>tt' not in transliteratedHebrewInput, f"{transliteratedHebrewInput=} from {hebrewInput=}"
+    assert 'ḩa ' not in transliteratedHebrewInput and 'ḩa.' not in transliteratedHebrewInput and 'ḩa<' not in transliteratedHebrewInput, f"{transliteratedHebrewInput=} from {hebrewInput=}"
+
+    # Handle schwa
+    # We have to redo the loop because otherwise we get fooled by words that have already changed
+    cleanedTransliteratedHebrew = transliteratedHebrewInput.replace( ',',' ' ).replace( '.',' ' ).replace( '\n',' ').replace( '   ',' ' ).replace( '  ',' ' ).rstrip()
+    for cc, cleanedTransliteratedHebrewWord in enumerate( cleanedTransliteratedHebrew.split( ' ' ) ):
+        assert cleanedTransliteratedHebrewWord, f"transliterate_Hebrew C{cc}: {cleanedTransliteratedHebrew=}"
+        if cleanedTransliteratedHebrewWord.isdigit(): continue
+        if len(cleanedTransliteratedHebrewWord) < 2: continue
+        dPrint('Verbose', DEBUGGING_THIS_MODULE, f"  transliterate_Hebrew D{cc}: {cleanedTransliteratedHebrewWord=}")
+
+        if 'ə' not in cleanedTransliteratedHebrewWord: continue
+        searchStartIndex = 0
+        for _safetyCount in range(6): # Maximum of five shwa's expected in a single word
+            shwaIndex = cleanedTransliteratedHebrewWord.find('ə', searchStartIndex)
+            if shwaIndex == -1: break # No more found
+            if shwaIndex < 2: # Too near the start of the word to be of interest here
+                searchStartIndex = shwaIndex + 1
+                continue
+            dPrint('Verbose', DEBUGGING_THIS_MODULE, f"  Found ə in '{cleanedTransliteratedHebrewWord}' at {shwaIndex=}")
+            prevChar1, prevChar2, prevChar3 = cleanedTransliteratedHebrewWord[shwaIndex-1], cleanedTransliteratedHebrewWord[shwaIndex-2], cleanedTransliteratedHebrewWord[shwaIndex-3]
+            try: nextChar1 = cleanedTransliteratedHebrewWord[shwaIndex+1]
+            except IndexError: nextChar1 = ' ' # None doesn't work below
+            try: nextChar2 = cleanedTransliteratedHebrewWord[shwaIndex+2]
+            except IndexError: nextChar2 = None
+            # dPrint('Verbose', DEBUGGING_THIS_MODULE, f"    Expected a consonant at {prevChar1=} preceded by {prevChar2=} from '{cleanedTransliteratedHebrewWord}' from '{input}'")
+            numLettersToDelete = 1 # Usually just the shwa marking the end of a syllable
+            if prevChar1 in 'ʼˊbdfghḩkⱪlmnpqrsştţʦvⱱyz' and prevChar2 in 'aeiou': # short vowels, then this shwa should be a silent one
+                dPrint('Info', DEBUGGING_THIS_MODULE, f"      RemovingA schwa preceded by short vowel '{prevChar2}' from '{cleanedTransliteratedHebrewWord}' from '{input}'")
+                if nextChar1 in 'dgkmqrʦy' and nextChar2==nextChar1: # then the next consonant must have a dagesh
+                    numLettersToDelete = 2 # But it doesn't need to be doubled at the beginning of the next syllable
+                    dPrint('Verbose', DEBUGGING_THIS_MODULE, f"       Also removing doubled '{nextChar1}' after shwa from '{cleanedTransliteratedHebrewWord}'" )
+                elif cleanedTransliteratedHebrewWord[shwaIndex+1:].startswith( 'shsh' ):
+                    numLettersToDelete = 3 # But it doesn't need to be doubled at the beginning of the next syllable
+                    print( f"       Also removing doubled 'sh' after shwa from '{cleanedTransliteratedHebrewWord}'" )
+                    has_not_been_executed_yet
+                newWord = f'{cleanedTransliteratedHebrewWord[:shwaIndex]}{cleanedTransliteratedHebrewWord[shwaIndex+numLettersToDelete:]}'
+                dPrint('Verbose', DEBUGGING_THIS_MODULE, f"        Replacing '{cleanedTransliteratedHebrewWord}' with '{newWord}'")
+                transliteratedHebrewInput = transliteratedHebrewInput.replace( cleanedTransliteratedHebrewWord, newWord ) # Will only work correctly ONCE FOR EACH WORD
+                cleanedTransliteratedHebrewWord = newWord
+                searchStartIndex = shwaIndex
+            elif prevChar1=='h' and prevChar2=='s' and prevChar3 in 'aeiou': # short vowels, then this shwa should be a silent one, e.g., after a 'sh'
+                dPrint('Info', DEBUGGING_THIS_MODULE, f"      RemovingB schwa preceded by short vowel '{prevChar3}' from '{cleanedTransliteratedHebrewWord}' from '{input}'")
+                assert prevChar2 in 's' and prevChar1 in 'h', f"{prevChar2=} and {prevChar1=}"
+                if nextChar1 in 'dgkmqrʦy' and nextChar2==nextChar1: # then the next consonant must have a dagesh
+                    numLettersToDelete = 2 # But it doesn't need to be doubled at the beginning of the next syllable
+                    dPrint('Verbose', DEBUGGING_THIS_MODULE, f"       Also removing doubled '{nextChar1}' after shwa from '{cleanedTransliteratedHebrewWord}'" )
+                elif cleanedTransliteratedHebrewWord[shwaIndex+1:].startswith( 'shsh' ):
+                    numLettersToDelete = 3 # But it doesn't need to be doubled at the beginning of the next syllable
+                    print( f"       Also removing doubled 'sh' after shwa from '{cleanedTransliteratedHebrewWord}'" )
+                    has_not_been_executed_yet
+                newWord = f'{cleanedTransliteratedHebrewWord[:shwaIndex]}{cleanedTransliteratedHebrewWord[shwaIndex+numLettersToDelete:]}'
+                dPrint('Verbose', DEBUGGING_THIS_MODULE, f"        Replacing '{cleanedTransliteratedHebrewWord}' with '{newWord}'")
+                transliteratedHebrewInput = transliteratedHebrewInput.replace( cleanedTransliteratedHebrewWord, newWord ) # Will only work correctly ONCE FOR EACH WORD
+                cleanedTransliteratedHebrewWord = newWord
+                searchStartIndex = shwaIndex
+            else:
+                searchStartIndex = shwaIndex + 1
+        else: not_enough_schwa_loops
+        # TODO: To be continued....
+
+    for thChar in transliteratedHebrewInput:
+        if thChar!='\n' and 'HEBREW' in unicodedata.name(thChar):
+            logging.critical(f"Have some Hebrew left-overs ({unicodedata.name(thChar)}) in '{transliteratedHebrewInput}' FROM '{input}'")
+            stop_so_we_can_fix_the_Hebrew_table
+
+    # if 1: # new code
+    if not capitaliseHebrew:
+        return f'{input[:first_Hebrew_index]}{transliteratedHebrewInput}{input[past_Hebrew_index:]}'
+    
+    # Ok, we have to title case it -- presumably the entire string not each individual word
+    if transliteratedHebrewInput[0] == 'ʦ': # This digraph doesn't have an UPPERCASE form in Unicode
+        capitalisedHebrew = f'Ts{transliteratedHebrewInput[1:]}'
+    elif transliteratedHebrewInput[0] == 'ₐ': # This subscript character doesn't have an UPPERCASE form in Unicode
+        capitalisedHebrew = f'A{transliteratedHebrewInput[1:]}'
+    elif transliteratedHebrewInput[0] == 'ₑ': # This subscript character doesn't have an UPPERCASE form in Unicode
+        capitalisedHebrew = f'E{transliteratedHebrewInput[1:]}'
+    elif transliteratedHebrewInput[0] == 'ⱱ': # This hooked character doesn't have an UPPERCASE form in Unicode
+        capitalisedHebrew = f'V{transliteratedHebrewInput[1:]}'
+    elif transliteratedHebrewInput[0] in 'ʼˊ':
+        if transliteratedHebrewInput[1] == 'ʦ': # This digraph doesn't have an UPPERCASE form in Unicode
+            capitalisedHebrew = f'{transliteratedHebrewInput[0]}Ts{transliteratedHebrewInput[2:]}'
+        elif transliteratedHebrewInput[1] == 'ₐ': # This subscript character doesn't have an UPPERCASE form in Unicode
+            capitalisedHebrew = f'{transliteratedHebrewInput[0]}A{transliteratedHebrewInput[2:]}'
+        elif transliteratedHebrewInput[1] == 'ₑ': # This subscript character doesn't have an UPPERCASE form in Unicode
+            capitalisedHebrew = f'{transliteratedHebrewInput[0]}E{transliteratedHebrewInput[2:]}'
+        elif transliteratedHebrewInput[1] == 'ⱱ': # This hooked character doesn't have an UPPERCASE form in Unicode
+            capitalisedHebrew = f'{transliteratedHebrewInput[0]}V{transliteratedHebrewInput[2:]}'
+        else:
+            capitalisedHebrew = f'{transliteratedHebrewInput[0]}{transliteratedHebrewInput[1].upper()}{transliteratedHebrewInput[2:]}' # Skip past either of the glottals and uppercase the next letter
+    else: # The normal case
+        capitalisedHebrew = f'{transliteratedHebrewInput[0].upper()}{transliteratedHebrewInput[1:]}'
+    assert capitalisedHebrew != transliteratedHebrewInput, f'({len(hebrewInput)}) {hebrewInput=} ({len(transliteratedHebrewInput)}) {transliteratedHebrewInput=} ({len(capitalisedHebrew)}) {capitalisedHebrew=}'
+    return f'{input[:first_Hebrew_index]}{capitalisedHebrew}{input[past_Hebrew_index:]}'
+    # else: # old code
+    #     assembled_result = f'{input[:first_Hebrew_index]}{transliteratedHebrewInput}{input[past_Hebrew_index:]}'
+    #     if not capitaliseHebrew:
+    #         return assembled_result
+        
+    #     # Ok, we have to title case it -- presumably the entire string
+    #     if assembled_result[first_Hebrew_index] == 'ʦ':
+    #         return assembled_result.replace( 'ʦ', 'Ts', 1 ) # This digraph doesn't have an UPPERCASE form
+        
+    #     # print(f"Title-casing '{result}' '{result[first_Hebrew_index:first_Hebrew_index+2]}' to '{result[:first_Hebrew_index+2].title()}'")
+    #     return f'{assembled_result[:first_Hebrew_index]}{assembled_result[first_Hebrew_index:first_Hebrew_index+2].title()}{assembled_result[first_Hebrew_index+2:]}' # Title case, but don't want something like Rəḩavə'Ām
 # end of transliterate_Hebrew function
+
 
 def transliterate_Greek(input:str) -> str:
     """
@@ -158,12 +334,17 @@ def transliterate_Greek(input:str) -> str:
         return result
 
     for tsv_row in greek_tsv_rows:
-        # print( f"  {tsv_row=}")
+        # print( f"  {tsv_row=} with {result=} from {input=}")
         result = result.replace( tsv_row['x-grc-koine'], tsv_row['en'] )
 
     # Transform aui to awi (esp. Dauid to Dawid)
     if 'aui' in result[first_Greek_index:]:
         result = f"{result[:first_Greek_index]}{result[first_Greek_index:].replace('aui','awi')}"
+
+    for tgChar in result:
+        if tgChar!='\n' and 'GREEK' in unicodedata.name(tgChar):
+            logging.critical(f"Have some Greek left-overs ({unicodedata.name(tgChar)}) in '{result}' from '{input}'")
+            stop_so_we_can_fix_the_Greek_table
 
     # Transform ie to ye at start
     for inChars,outChars in ( ('ie','ye'), ('Ie','Ye') ):
@@ -207,7 +388,53 @@ Genesis_1 = '''Chapter 1
 29 וַיֹּ֣אמֶר אֱלֹהִ֗ים הִנֵּה֩ נָתַ֨תִּי לָכֶ֜ם אֶת־כָּל־עֵ֣שֶׂב ׀ זֹרֵ֣עַ זֶ֗רַע אֲשֶׁר֙ עַל־פְּנֵ֣י כָל־הָאָ֔רֶץ וְאֶת־כָּל־הָעֵ֛ץ אֲשֶׁר־בּ֥וֹ פְרִי־עֵ֖ץ זֹרֵ֣עַ זָ֑רַע לָכֶ֥ם יִֽהְיֶ֖ה לְאָכְלָֽה׃
 30 וּֽלְכָל־חַיַּ֣ת הָ֠אָרֶץ וּלְכָל־ע֨וֹף הַשָּׁמַ֜יִם וּלְכֹ֣ל ׀ רוֹמֵ֣שׂ עַל־הָאָ֗רֶץ אֲשֶׁר־בּוֹ֙ נֶ֣פֶשׁ חַיָּ֔ה אֶת־כָּל־יֶ֥רֶק עֵ֖שֶׂב לְאָכְלָ֑ה וַֽיְהִי־כֵֽן׃
 31 וַיַּ֤רְא אֱלֹהִים֙ אֶת־כָּל־אֲשֶׁ֣ר עָשָׂ֔ה וְהִנֵּה־ט֖וֹב מְאֹ֑ד וַֽיְהִי־עֶ֥רֶב וַֽיְהִי־בֹ֖קֶר י֥וֹם הַשִּׁשִּֽׁי׃ פ
+2:4 אֵ֣לֶּה תוֹלְד֧וֹת הַשָּׁמַ֛יִם וְהָאָ֖רֶץ בְּהִבָּֽרְאָ֑ם בְּי֗וֹם עֲשׂ֛וֹת יְהוָ֥ה אֱלֹהִ֖ים אֶ֥רֶץ וְשָׁמָֽיִם׃
+6:8 וְנֹ֕חַ מָ֥צָא חֵ֖ן בְּעֵינֵ֥י יְהוָֽה׃פ
 '''
+Expected_Gen_1_result_words = ['Chapter', '1',
+                               '1', 'bərēʼshiyt', 'bārāʼ', 'ʼₑlohiym', 'ʼēt', 'hashshāmayim', 'vəʼēt', 'hāʼāreʦ.',
+                               '2', 'vəhāʼāreʦ', 'hāyətāh', 'tohū', 'vāⱱohū', 'vəḩoshek', 'ˊal-pənēy', 'təhōm', 'vərūaḩ', 'ʼₑlohiym', 'məraḩefet', 'ˊal-pənēy', 'hammāyim.',
+                               '3', 'vayyoʼmer', 'ʼₑlohiym', 'yəhiy', 'ʼōr', 'vayhī-ʼōr.',
+                               '4', 'vayyarʼ', 'ʼₑlohiym', 'ʼet-hāʼōr', 'ⱪī-ţōⱱ', 'vayyaⱱddēl', 'ʼₑlohiym', 'bēyn', 'hāʼōr', 'ūⱱēyn', 'haḩoshek.',
+                               '5', 'vayyiqrāʼ', 'ʼₑlohiym', 'lāʼōr', 'yōm', 'vəlaḩoshek', 'qārāʼ', 'lāyəlāh', 'vayhī-ˊereⱱ', 'vayhī-ⱱoqer', 'yōm', 'ʼeḩād.', 'f',
+                               
+                               '6', 'vayyoʼmer', 'ʼₑlohiym', 'yəhiy', 'rāqiyˊa', 'bətōk', 'hammāyim', 'vīhiy', 'maⱱddiyl', 'bēyn', 'mayim', 'lāmāyim.',
+                               '7', 'vayyaˊas', 'ʼₑlohīm', 'ʼet-hārāqīˊa', 'vayyaⱱddēl', 'bēyn', 'hammayim', 'ʼₐsher', 'mittaḩat', 'lārāqiyˊa', 'ūⱱēyn', 'hammayim', 'ʼₐsher', 'mēˊal', 'lārāqiyˊa', 'vayhī-kēn.',
+                               '8', 'vayyiqrāʼ', 'ʼₑlohiym', 'lārāqiyˊa', 'shāmāyim', 'vayhī-ˊereⱱ', 'vayhī-ⱱoqer', 'yōm', 'shēniy.', 'f',
+
+                               '9', 'vayyoʼmer', 'ʼₑlohiym', 'yiqqāvū', 'hammayim', 'mittaḩat', 'hashshāmayim', 'ʼel-māqōm', 'ʼeḩād', 'vətērāʼeh', 'hayyabāshāh', 'vayhī-kēn.',
+                               '10', 'vayyiqrāʼ', 'ʼₑlohiym', 'layyabāshāh', 'ʼereʦ', 'ūləmiqvēh', 'hammayim', 'qārāʼ', 'yammiym', 'vayyarʼ', 'ʼₑlohiym', 'ⱪī-ţōⱱ.',
+                               '11', 'vayyoʼmer', 'ʼₑlohiym', 'tadshēʼ', 'hāʼāreʦ', 'desheʼ', 'ˊēseⱱ', 'mazriyˊa', 'zeraˊ', 'ˊēʦ', 'pəriy', 'ˊoseh', 'pərī', 'ləmīnō', 'ʼₐsher', 'zarˊō-ⱱō', 'ˊal-hāʼāreʦ', 'vayhī-kēn.',
+                               '12', 'vattōʦēʼ', 'hāʼāreʦ', 'desheʼ', 'ˊēseⱱ', 'mazriyˊa', 'zeraˊ', 'ləmīnēhū', 'vəˊēʦ', 'ˊoseh-pəriy', '', 'ʼₐsher', 'zarˊō-ⱱō', 'ləmīnēhū', 'vayyarʼ', 'ʼₑlohiym', 'ⱪī-ţōⱱ.',
+                               '13', 'vayhī-ˊereⱱ', 'vayhī-ⱱoqer', 'yōm', 'shəlīshiy.', 'f',
+                               
+                               '14', 'vayyoʼmer', 'ʼₑlohiym', 'yəhiy', 'məʼorot', 'birqiyˊa', 'hashshāmayim', 'ləhaⱱddiyl', 'bēyn', 'hayyōm', 'ūⱱēyn', 'hallāyəlāh', 'vəhāyū', 'ləʼotot', 'ūləmōˊₐdiym', 'ūləyāmiym', 'vəshāniym.',
+                               '15', 'vəhāyū', 'limʼōrot', 'birqiyˊa', 'hashshāmayim', 'ləhāʼiyr', 'ˊal-hāʼāreʦ', 'vayhī-kēn.',
+                               '16', 'vayyaˊas', 'ʼₑlohiym', 'ʼet-shənēy', 'hamməʼorot', 'haggədoliym', 'ʼet-hammāʼōr', 'haggādol', 'ləmemshelet', 'hayyōm',
+                                        'vəʼet-hammāʼōr', 'haqqāţon', 'ləmemshelet', 'hallaylāh', 'vəʼēt', 'haⱪōkāⱱiym.',
+                               '17', 'vayyittēn', 'ʼotām', 'ʼₑlohiym', 'birqiyˊa', 'hashshāmāyim', 'ləhāʼiyr', 'ˊal-hāʼāreʦ.',
+                               '18', 'vəlimshol', 'bayyōm', 'ūⱱallaylāh', 'ūlₐhaⱱddiyl', 'bēyn', 'hāʼōr', 'ūⱱēyn', 'haḩoshek', 'vayyarʼ', 'ʼₑlohiym', 'ⱪī-ţōⱱ.',
+                               '19', 'vayhī-ˊereⱱ', 'vayhī-ⱱoqer', 'yōm', 'rəⱱīˊiy.', 'f',
+                               
+                               '20', 'vayyoʼmer', 'ʼₑlohiym', 'yishərəʦū', 'hammayim', 'shereʦ', 'nefesh', 'ḩayyāh', 'vəˊōf', 'yəˊōfēf', 'ˊal-hāʼāreʦ', 'ˊal-pənēy', 'rəqiyˊa', 'hashshāmāyim.',
+                               '21', 'vayyiⱱrāʼ', 'ʼₑlohiym', 'ʼet-hattannīnim', 'haggədoliym',
+                                        'vəʼēt', 'ⱪāl-nefesh', 'haḩayyāh', 'hāromeset', 'ʼₐsher', 'shārəʦū', 'hammayim', 'ləmiynēhem', 'vəʼēt', 'ⱪāl-ˊōf', 'ⱪānāf', 'ləmīnēhū', 'vayyarʼ', 'ʼₑlohiym', 'ⱪī-ţōⱱ.',
+                               '22', 'vayⱱārek', 'ʼotām', 'ʼₑlohiym', 'lēʼmor', 'pərū', 'ūrəⱱū', 'ūmilʼū', 'ʼet-hammayim', 'bayyammiym', 'vəhāˊōf', 'yireⱱ', 'bāʼāreʦ.',
+                               '23', 'vayhī-ˊereⱱ', 'vayhī-ⱱoqer', 'yōm', 'ḩₐmīshiy.', 'f',
+                               
+                               '24', 'vayyoʼmer', 'ʼₑlohiym', 'tōʦēʼ', 'hāʼāreʦ', 'nefesh', 'ḩayyāh', 'ləmīnāh', 'bəhēmāh', 'vāremes', 'vəḩaytō-ʼereʦ', 'ləmīnāh', 'vayhī-kēn.',
+                               '25', 'vayyaˊas', 'ʼₑlohīm', 'ʼet-ḩayyat', 'hāʼāreʦ', 'ləmīnāh', 'vəʼet-habhēmāh', 'ləmīnāh', 'vəʼēt', 'ⱪāl-remes', 'hāʼₐdāmāh', 'ləmīnēhū', 'vayyarʼ', 'ʼₑlohiym', 'ⱪī-ţōⱱ.',
+                               '26', 'vayyoʼmer', 'ʼₑlohiym', 'naˊₐseh', 'ʼādām', 'bəʦalmēnū', 'ⱪidmūtēnū', 'vəyirddū', 'ⱱidgat', 'hayyām', 'ūⱱəˊōf', 'hashshāmayim', 'ūⱱabhēmāh', 'ūⱱəkāl-hāʼāreʦ', 'ūⱱəkāl-hāremes', 'hāromēs', 'ˊal-hāʼāreʦ.',
+                               '27', 'vayyiⱱrāʼ', 'ʼₑlohiym', 'ʼet-hāʼādām', 'bəʦalmō', 'bəʦelem', 'ʼₑlohiym', 'bārāʼ', 'ʼotō', 'zākār', 'ūnəqēⱱāh', 'bārāʼ', 'ʼotām.',
+                               '28', 'vayⱱārek', 'ʼotām', 'ʼₑlohīm', 'vayyoʼmer', 'lāhem', 'ʼₑlohiym', 'pərū', 'ūrəⱱū', 'ūmilʼū', 'ʼet-hāʼāreʦ',
+                                        'vəkiⱱshuhā', 'ūrədū', 'bidgat', 'hayyām', 'ūⱱəˊōf', 'hashshāmayim', 'ūⱱəkāl-ḩayyāh', 'hāromeset', 'ˊal-hāʼāreʦ.',
+                               '29', 'vayyoʼmer', 'ʼₑlohiym', 'hinnēh', 'nātattī', 'lākem', 'ʼet-ⱪāl-ˊēseⱱ', 'zorēˊa', 'zeraˊ', 'ʼₐsher', 'ˊal-pənēy', 'kāl-hāʼāreʦ',
+                                        'vəʼet-ⱪāl-hāˊēʦ', 'ʼₐsher-bō', 'fərī-ˊēʦ', 'zorēˊa', 'zāraˊ', 'lākem', 'yihyeh', 'ləʼākəlāh.',
+                               '30', 'ūləkāl-ḩayyat', 'hāʼāreʦ', 'ūləkāl-ˊōf', 'hashshāmayim', 'ūləkol', 'rōmēs', 'ˊal-hāʼāreʦ', 'ʼₐsher-bō', 'nefesh', 'ḩayyāh', 'ʼet-ⱪāl-yereq', 'ˊēseⱱ', 'ləʼākəlāh', 'vayhī-kēn.',
+                               '31', 'vayyarʼ', 'ʼₑlohīm', 'ʼet-ⱪāl-ʼₐsher', 'ˊāsāh', 'vəhinnēh-ţōⱱ', 'məʼod', 'vayhī-ˊereⱱ', 'vayhī-ⱱoqer', 'yōm', 'hashshishshiy.', 'f',
+                               '2:4', 'ʼēlleh', 'tōlədōt', 'hashshāmayim', 'vəhāʼāreʦ', 'bəhibārəʼām', 'bəyōm', 'ˊₐsōt', 'yahweh', 'ʼₑlohiym', 'ʼereʦ', 'vəshāmāyim.',
+                               '6:8', 'vənoaḩ', 'māʦāʼ', 'ḩēn', 'bəˊēynēy', 'yahweh.◊']
+
 
 Matthew_1 = '''\\v 1 ¶Βίβλος γενέσεως Ἰησοῦ Χριστοῦ, υἱοῦ Δαυὶδ, υἱοῦ Ἀβραάμ:
 \\v 2 ¶Ἀβραὰμ ἐγέννησεν τὸν Ἰσαάκ, Ἰσαὰκ δὲ ἐγέννησεν τὸν Ἰακώβ, Ἰακὼβ δὲ ἐγέννησεν τὸν Ἰούδαν καὶ τοὺς ἀδελφοὺς αὐτοῦ,
@@ -239,7 +466,6 @@ Matthew_1 = '''\\v 1 ¶Βίβλος γενέσεως Ἰησοῦ Χριστο�
 def check_line(line:str):
     """
     """
-    # import unicodedata
     for c,char in enumerate(line, start=1):
         if char in ' ʼ,.?!:;-–/\\1234567890“”‘’()¶…©':
             continue
@@ -276,12 +502,25 @@ def briefDemo() -> None:
     result = transliterate_Hebrew( Genesis_1 )
     vPrint( 'Verbose', DEBUGGING_THIS_MODULE, result )
     if not check_text(result): have_bad_transliteration
+    resultWords = result.rstrip().replace( '\n', ' ' ).replace( '  ', ' ' ).split( ' ' )
+    vPrint( 'Verbose', DEBUGGING_THIS_MODULE, f"({len(resultWords)}) {resultWords=}" )
+    for n, (current_result_word, previous_result_word) in enumerate( zip( resultWords, Expected_Gen_1_result_words, strict=True ), start=1 ):
+        if current_result_word != previous_result_word:
+            logging.critical( f"Result word {n} differs: ({len(current_result_word)}) {current_result_word=} vs ({len(previous_result_word)}) {previous_result_word=}" )
+            halt
 
     vPrint( 'Normal', DEBUGGING_THIS_MODULE, "\nTesting Matthew 1 in Greek…" )
     load_transliteration_table('Greek')
     result = transliterate_Greek( Matthew_1 )
     vPrint( 'Verbose', DEBUGGING_THIS_MODULE, result )
     if not check_text(result): have_bad_transliteration
+
+    vPrint( 'Normal', DEBUGGING_THIS_MODULE, "\nTesting Hebrew schwa's…" )
+    for hebWord in ('וְ⁠אֶל־מֹשֶׁ֨ה', 'אֶל־יְהוָ֗ה', 'וְ⁠אַהֲרֹן֙', 'וְ⁠שִׁבְעִ֖ים', 'מִ⁠זִּקְנֵ֣י', 'יִשְׂרָאֵ֑ל', 'וְ⁠הִשְׁתַּחֲוִיתֶ֖ם'):
+        hebWord = hebWord.replace( '\u2060', '' ) # Remove word joiners
+        assert 'ְ' in hebWord, f"{hebWord}"
+        translit = transliterate_Hebrew( hebWord )
+        print( f"{hebWord=} then {translit=}")
 # end of BibleTransliterations.briefDemo
 
 def fullDemo() -> None:
@@ -331,7 +570,7 @@ if __name__ == '__main__':
     parser = BibleOrgSysGlobals.setup( SHORT_PROGRAM_NAME, PROGRAM_VERSION, LAST_MODIFIED_DATE )
     BibleOrgSysGlobals.addStandardOptionsAndProcess( parser )
 
-    fullDemo()
+    briefDemo()
 
     BibleOrgSysGlobals.closedown( PROGRAM_NAME, PROGRAM_VERSION )
 # end of BibleTransliterations.py

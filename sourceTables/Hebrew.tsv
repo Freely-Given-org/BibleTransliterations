@@ -1,36 +1,41 @@
 hbo	Meta	en	Comment
-א	Alef	ʼ
+א	Alef	ʼ	# Modifier letter apostrophe U+02BC
 אּ	Alef	ʼ
-ב	Bet	v
+ב	Bet	ⱱ	# Different character from Vav
 בּ	Bet	b
-בְּ		bbə	# Shva is (wrongly?) BEFORE dagesh
-בַּ		bba	# Patah is (wrongly?) BEFORE dagesh
-בָּ		bbā	# Qamats is (wrongly?) BEFORE dagesh
-בֶּ		bbe	# Segol is (wrongly?) BEFORE dagesh
-בֵּ		bbē	# Tsere is (wrongly?) BEFORE dagesh
-בִּ		bbi	# Hiriq is (wrongly?) BEFORE dagesh
-בֹּ		bbo	# Holam is (wrongly?) BEFORE dagesh
+בְּ		bə	# Shva is (wrongly?) BEFORE dagesh
+בַּ		ba	# Patah is (wrongly?) BEFORE dagesh
+בָּ		bā	# Qamats is (wrongly?) BEFORE dagesh
+בֶּ		be	# Segol is (wrongly?) BEFORE dagesh
+בֵּ		bē	# Tsere is (wrongly?) BEFORE dagesh
+בִּ		bi	# Hiriq is (wrongly?) BEFORE dagesh
+בֹּ		bo	# Holam is (wrongly?) BEFORE dagesh
 ג	Gimel	g
-גּ	Gimel	g
+גּ	Gimel	gg
 גְּ		ggə	# Shva is (wrongly?) BEFORE dagesh
 גַּ		gga	# Patah is (wrongly?) BEFORE dagesh
 גָּ		ggā	# Qamats is (wrongly?) BEFORE dagesh
+גֶּ		gge	# Segol is (wrongly?) BEFORE dagesh
 גֵּ		ggē	# Tsere is (wrongly?) BEFORE dagesh
 גִּ		ggi	# Hiriq is (wrongly?) BEFORE dagesh
 גֹּ		ggo	# Holam is (wrongly?) BEFORE dagesh
 גֻּ		ggu	# Qubuts is (wrongly?) BEFORE dagesh
+גּשׁ		ggosh	# The shin dot acts as the holam
 ד	Dalet	d
-דּ	Dalet	d
+דּ	Dalet	dd
 דְּ		ddə	# Shva is (wrongly?) BEFORE dagesh
 דַּ		dda	# Patah is (wrongly?) BEFORE dagesh
+דֲּ		dda	# Hataf Patah is (wrongly?) BEFORE dagesh
 דָּ		ddā	# Qamats is (wrongly?) BEFORE dagesh
 דֱּ		dde	# Hataf segol is (wrongly?) BEFORE dagesh
 דֵּ		ddē	# Tsere is (wrongly?) BEFORE dagesh
 דִּ		ddi	# Hiriq is (wrongly?) BEFORE dagesh
+דֹּ		ddo	# Holam is (wrongly?) BEFORE dagesh
 ה	He	h
 הּ	HeFinal	h
 ו	Vav	v
-וֹ		ō
+וֹ		ō	# Vav with Holam
+וֺ		ō	# Vav with Holam Haser(=deficient)
 וּ		ū
 וָּ		vvā	# Qamats is (wrongly?) BEFORE dagesh
 ז	Zayin	z
@@ -38,25 +43,28 @@ hbo	Meta	en	Comment
 זָּ		zzā	# Qamats is (wrongly?) BEFORE dagesh
 זִּ		zzi	# Hiriq is (wrongly?) BEFORE dagesh
 ח	Het	ḩ
-חּ	Het	ḩḩ
+חּ	HetDagesh	ḩḩ
 ט	Tet	ţ
 טּ	Tet	ţţ
 טָּ		ţţā	# Qamats is (wrongly?) BEFORE dagesh
 י	Yod	y
-יּ	Yod	u
+יּ	Yod	yy
 יָּ		yyā	# Qamats is (wrongly?) BEFORE dagesh
 יֵּ		yyē	# Tsere is (wrongly?) BEFORE dagesh
 כ	Kaf	k
-כּ	Kaf	k
+כּ	Kaf	kk
+כְּ		kkə	# Shva is (wrongly?) BEFORE dagesh
 כַּ		kka	# Patah is (wrongly?) BEFORE dagesh
+כָּ		kkā	# Qamats is (wrongly?) BEFORE dagesh
 כִּ		kki	# Hiriq is (wrongly?) BEFORE dagesh
 כִּי		kkī	# Hiriq is (wrongly?) BEFORE dagesh BEFORE YOD
 כֹּ		kko	# Holam is (wrongly?) BEFORE dagesh
 ך	KafFinal	k
-ךּ	KafFinalDagesh	k
+ךּ	KafFinalDagesh	ⱪ	# Test k with hook rather than kk which looks bad at end of words
 ךְ	KafFinalShva	k
 ל	Lamed	l
 לּ	Lamed	ll
+לָּ		llā	# Qamats is (wrongly?) BEFORE dagesh
 מ	Mem	m
 מּ	Mem	mm
 מָּ		mmā	# Qamats is (wrongly?) BEFORE dagesh
@@ -65,12 +73,13 @@ hbo	Meta	en	Comment
 ם	MemFinal	m
 נ	Nun	n
 נּ	Nun	nn
+נֶּ		nne	# Segol is (wrongly?) BEFORE dagesh
 נֹּ		nno	# Holam is (wrongly?) BEFORE dagesh
 ן	NunFinal	n
 ס	Samekh	ş
 סּ	Samekh	şş
 סָּ		şşā	# Qamats is (wrongly?) BEFORE dagesh
-ע	Ayin	ˊ
+ע	Ayin	ˊ	# Modifier letter accute accent U+02CA
 פ	Pe	f
 פּ	Pe	p
 פַּ		ppa	# Patah is (wrongly?) BEFORE dagesh
@@ -105,7 +114,7 @@ hbo	Meta	en	Comment
 שׂ	Sin	s
 שּׂ	Sin	ss
 ת	Tav	t
-תּ	Tav	t
+תּ	Tav	tt
 תַּ		tta	# Patah is (wrongly?) BEFORE dagesh
 תָּ		ttā	# Qamats is (wrongly?) BEFORE dagesh
 תֶּ		tte	# Segol is (wrongly?) BEFORE dagesh
@@ -114,12 +123,12 @@ hbo	Meta	en	Comment
 ְ	Shva	ə
 ַ	Patah	a
 ָ	Qamats	ā
-ׇ	QamatsQatan	o
+ׇ	QamatsQatan	ō	# Testing (we want it different from holam)
 ֿ	Rafe
 ֶ	Segol	e
-ֲ	HatafPatah	a
-ֳ	HatafQamats	o
-ֱ	HatafSegol	e
+ֲ	HatafPatah	ₐ
+ֳ	HatafQamats	ₒ
+ֱ	HatafSegol	ₑ
 ֵ	Tsere	ē
 ִ	Hiriq	i
 ִי	HiriqYod	ī	# This may not be a good solution -- only applies if the yod doesn't have it's own pointing
@@ -161,4 +170,5 @@ hbo	Meta	en	Comment
 ֔	ZaqefQatanAccent
 ֘	ZarqaAccent
 ֮	ZinorAccent
+׃פ	SofPasuqPe	.◊
 ׃	SofPasuq	.

@@ -1,29 +1,37 @@
 x-grc-koine	Meta	en	Comment
 Α	ALPHA	A	# Can be short or long
-Ἀ		A
-Ἄ		A
-Ἆ		A
-Ἁ		Ha
-Ἅ		Ha
-Ἃ		Ha
-ᾍ		Ha
+Ἀ		A	# with psili
+Ἄ		A	# with psili and oxia
+Ἂ		A	# with psili and varia
+Ἆ		A	# with psili and perispomeni
+Ἁ		Ha	# with dasia
+Ἅ		Ha	# with dasia and oxia
+Ἃ		Ha	# with dasia and varia
+ᾍ		Hai	# with dasia and oxia and prosgegrammeni
 Αα		Aʼa	# Ensure it's seen as two syllables -- not as long a
 Ἀα		Aʼa	# Ensure it's seen as two syllables -- not as long a
 α	alpha	a	# Can be short or long
-ά		a
-ὰ		a
-ἀ		a
-ᾶ		a
-ἄ		a
-ἂ		a
-ᾳ		a
-ἆ		a
-ᾷ		a
-ᾄ		a
-ᾴ		a
-ἁ		ha
-ἃ		ha
-ἅ		ha
+ά		a	# with tonos
+ὰ		a	# with varia
+ἀ		a	# with psili
+ᾶ		a	# with perispomeni
+ᾳ		a	# with ypogegrammeni
+ᾰ		a	# with vrachy
+ἄ		a	# with psili and oxia
+ἂ		a	# with psili and varia
+ἆ		a	# with psili and perispomeni
+ᾷ		a	# with perispomeni and ypogegrammeni
+ᾴ		a	# with oxia and ypogegrammeni
+ᾀ		a	# with psili and ypogegrammeni
+ᾄ		a	# with psili and oxia and ypogegrammeni
+ᾂ		a	# with psili and varia and ypogegrammeni
+ᾆ		a	# with psili and perispomeni and ypogegrammeni
+ἁ		ha	# with dasia
+ἅ		ha	# with dasia and oxia
+ἃ		ha	# with dasia and varia
+ἇ		ha	# with dasia and perispomeni
+ᾁ		ha	# with dasia and ypogegrammeni
+ᾅ		ha	# with dasia and oxia and ypogegrammeni
 αα		aʼa	# Ensure it's seen as two syllables -- not as long a
 αά		aʼa	# Ensure it's seen as two syllables -- not as long a
 αὰ		aʼa	# Ensure it's seen as two syllables -- not as long a
@@ -36,11 +44,12 @@ x-grc-koine	Meta	en	Comment
 Δ	DELTA	D
 δ	delta	d
 Ε	EPSILON	E
-Ἐ		E
-Ἔ		E
-Ἑ		He
-Ἕ		He
-Ἓ		He
+Ἐ		E	# with psili
+Ἔ		E	# with psili and oxia
+Ἒ		E	# with psili and varia
+Ἑ		He	# with dasia
+Ἕ		He	# with dasia and oxia
+Ἓ		He	# with dasia and varia
 ε	epsilon	e
 έ		e
 ὲ		e
@@ -54,13 +63,16 @@ x-grc-koine	Meta	en	Comment
 Ζ	ZETA	Z
 ζ	zeta	z
 Η	ETA	Aʸ
-Ἠ		Aʸ
-Ἦ		Aʸ
-Ἤ		Aʸ
-Ἢ		Aʸ
-ᾜ		Aʸ
-Ἡ		Haʸ
-Ἥ		Haʸ
+Ἠ		Aʸ	# with psili
+Ἦ		Aʸ	# with psili and perispomeni
+Ἤ		Aʸ	# with psili and oxia
+Ἢ		Aʸ	# with psili and varia
+ᾜ		Aʸ	# with psili and oxia and prosgegrammeni
+Ἡ		Haʸ	# with dasia
+Ἥ		Haʸ	# with dasia and oxia
+Ἣ		Haʸ	# with dasia and varia
+Ἧ		Haʸ	# with dasia and perispomeni
+ᾟ		Haʸ	# with dasia and perispomeni and prosgegrammeni
 η	eta	aʸ
 ή		aʸ
 ὴ		aʸ
@@ -95,18 +107,22 @@ x-grc-koine	Meta	en	Comment
 Ἰό		Yo
 Ἰω		Yō
 ι	iota	i	# Can be short or long
-ί		i
-ὶ		i
-ἰ		i
-ῖ		i
-ἶ		i
-ἴ		i
-ϊ		i
-ΐ		i
-ῒ		i
-ἷ		i
-ἱ		hi
-ἵ		hi
+ί		i	# with oxia
+ί		i	# with tonos
+ὶ		i	# with varia
+ἰ		i	# with psili
+ῖ		i	# with perispomeni
+ἴ		i	# with psili and oxia
+ἶ		i	# with psili and perispomeni
+ἲ		i	# with psili and varia
+ϊ		i	# with dialytika
+ΐ		i	# with dialytika and oxia
+ΐ		i	# with dialytika and tonos
+ῒ		i	# with dialytika and varia
+ἱ		hi	# with dasia
+ἵ		hi	# with dasia and oxia
+ἳ		hi	# with dasia and varia
+ἷ		hi	# with dasia and perispomeni
 Κ	KAPPA	K
 κ	kappa	k
 Λ	LAMBDA	L
@@ -138,10 +154,12 @@ x-grc-koine	Meta	en	Comment
 Ρ	RHO	R
 Ῥ		Ɽ
 ρ	rho	r
-ῥ		ɽ
+ῥ		ɽ	# with dasia
+ῤ		ɽ	# with psili
 Σ	SIGMA	S
 σ	sigma	s
 ς	sigma	s
+ϛ	stigma	6	# sigma/tau ligature, mostly used for number 6
 Τ	TAU	T
 τ	tau	t
 Υ	UPSILON	U	# Can be short or long
@@ -150,18 +168,20 @@ x-grc-koine	Meta	en	Comment
 Ὗ		Hu
 Υἱ		Hui
 υ	upsilon	u	# Can be short or long
-ύ		u
-ὺ		u
-ὐ		u
-ῦ		u
-ὒ		u
-ὖ		u
-ϋ		u
-ὔ		u
-ΰ		u
-ῢ		u
-ὑ		hu
-ὕ		hu
+ύ		u	# with tonos
+ὐ		u	# with psili
+ὺ		u	# with varia
+ὔ		u	# with psili and oxia
+ὒ		u	# with psili and varia
+ὖ		u	# with psili and perispomeni
+ῦ		u	# with perispomeni
+ϋ		u	# with dialytika
+ΰ		u	# with dialytika and tonos
+ῢ		u	# with dialytika and varia
+ὑ		hu	# with dasia
+ὕ		hu	# with dasia and oxia
+ὓ		hu	# with dasia and varia
+ὗ		hu	# with dasia and perispomeni
 Φ	PHI	F
 φ	phi	f
 Χ	CHI	Ⱪ	# NOTE: Here use a letter with a descender to distinguish from Kappa
@@ -169,13 +189,15 @@ x-grc-koine	Meta	en	Comment
 Ψ	PSI	ps
 ψ	psi	ps
 Ω	OMEGA	Ō
-Ὠ		Ō
-Ὦ		Ō
-Ὤ		Ō
-Ὡ		Hō
-Ὥ		Hō
-Ὧ		Hō
-ᾯ		Hō
+Ὠ		Ō	# with psili
+Ὦ		Ō	# with psili and perispomeni
+Ὤ		Ō	# with psili and oxia
+Ὢ		Ō	# with psili and varia
+Ὡ		Hō	# with dasia
+Ὥ		Hō	# with dasia and oxia
+Ὣ		Hō	# with dasia and varia
+Ὧ		Hō	# with dasia and perispomeni
+ᾯ		Hōi	# with dasia and perispomeni and prosgegrammeni
 ω	omega	ō
 ώ		ō
 ὼ		ō
@@ -183,25 +205,30 @@ x-grc-koine	Meta	en	Comment
 ῶ		ō
 ὢ		ō
 ὤ		ō
-ῴ		ō
-ᾠ		ō
-ὦ		ō
+ῴ		ō	# with oxia and ypogegrammeni
+ᾠ		ō	# with psili and ypogegrammeni
+ὦ		ō	# with psili and perispomeni
+ᾤ		ō	# with psili and oxia and ypogegrammeni
 ῳ		ōi
 ῷ		ōi
 ὡ		hō
 ὥ		hō
 ὧ		hō
 ᾧ		hō
-;		?	# Must be above the following line
-·		;
-Αἵ		Hai	# Dipthongs with rough breathings
-Αἱ		Hai
+;		?	# Greek question mark
+·		;	# Middle dot
+·		—	# Greek ano teleia
+᾽			# Greek koronis
+Αἱ		Hai	# Dipthongs with rough breathings -- iota with dasia
+Αἵ		Hai	# iota with dasia and oxia
+Αἷ		Hai	# iota with dasia and perispomeni
 αἳ		hai
 αἷ		hai
 αἵ		hai
 αἱ		hai
-Αὕ		Hau
 Αὑ		Hau
+Αὕ		Hau
+Αὗ		Hau
 αὗ		hau
 αὕ		hau
 αὑ		hau
@@ -214,11 +241,14 @@ x-grc-koine	Meta	en	Comment
 Εὕ		Heu
 Εὗ		Heu
 Εὑ		Heu
-εὗ		heu
-εὕ		heu
-εὑ		heu
-Οἵ		Hoi
-Οἱ		Hoi
+εὑ		heu	# upsilon with dasia
+εὕ		heu	# upsilon with dasia and oxia
+εὓ		heu	# upsilon with dasia and varia
+εὗ		heu	# upsilon with dasia and perispomeni
+Οἱ		Hoi	# iota with dasia
+Οἵ		Hoi	# iota with dasia and oxia
+Οἳ		Hoi	# iota with dasia and varia
+Οἷ		Hoi	# iota with dasia and perispomeni
 οἳ		hoi
 οἷ		hoi
 οἵ		hoi
