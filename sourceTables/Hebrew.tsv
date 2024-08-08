@@ -107,9 +107,9 @@ hbo	Meta	en	Comment
 שָׂ		sā	# Qamats is (wrongly?) BEFORE sin dot
 שֶׂ		se	# Segol is (wrongly?) BEFORE sin dot
 שָּׂ		ssā	# Qamats is (wrongly?) BEFORE dagesh which is BEFORE sin dot
-שׁ	Shin	sh
-שׁ	Shin	sh
-שּׁ	Shin	shsh
+שׁ	Shin	š	#
+שׁ	Shin	š	# Keep shin as a single consonant for now (for easier processing) then change to sh later
+שּׁ	Shin	šš	#
 שׂ	Sin	s
 שׂ	Sin	s
 שּׂ	Sin	ss
