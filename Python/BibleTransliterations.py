@@ -39,10 +39,10 @@ from BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 
 
 
-LAST_MODIFIED_DATE = '2024-08-07' # by RJH
+LAST_MODIFIED_DATE = '2024-08-08' # by RJH
 SHORT_PROGRAM_NAME = "BibleTransliterations"
 PROGRAM_NAME = "Bible Transliterations handler"
-PROGRAM_VERSION = '0.29'
+PROGRAM_VERSION = '0.30'
 PROGRAM_NAME_VERSION = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
 
 DEBUGGING_THIS_MODULE = False
@@ -239,7 +239,8 @@ def transliterate_Hebrew(input:str, capitaliseHebrew=False) -> str:
             numLettersToDelete = 1 # Usually just the shwa marking the end of a syllable
             if prevChar1 in 'ʼˊbdfghḩkⱪlmnpqrsşštţʦvⱱyz' and prevChar2 in 'aeiou': # short vowels, then this shwa should be a silent one
                 dPrint('Info', DEBUGGING_THIS_MODULE, f"      RemovingA schwa preceded by short vowel '{prevChar2}' from '{cleanedTransliteratedHebrewWord}' from '{input}'")
-                if nextChar1 in 'dgkmqrʦy' and nextChar2==nextChar1: # then the next consonant must have a dagesh
+                if nextChar2==nextChar1: # then the next consonant must have a dagesh
+                    assert nextChar1 in 'dgkmqrštʦy', f"{prevChar1=} {nextChar1=}"
                     numLettersToDelete = 2 # But it doesn't need to be doubled at the beginning of the next syllable
                     dPrint('Verbose', DEBUGGING_THIS_MODULE, f"       Also removing doubled '{nextChar1}' after shwa from '{cleanedTransliteratedHebrewWord}'" )
                 # elif cleanedTransliteratedHebrewWord[shwaIndex+1:].startswith( 'shsh' ):
