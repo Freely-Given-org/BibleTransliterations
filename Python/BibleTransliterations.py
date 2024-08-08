@@ -42,7 +42,7 @@ from BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 LAST_MODIFIED_DATE = '2024-08-08' # by RJH
 SHORT_PROGRAM_NAME = "BibleTransliterations"
 PROGRAM_NAME = "Bible Transliterations handler"
-PROGRAM_VERSION = '0.31'
+PROGRAM_VERSION = '0.32'
 PROGRAM_NAME_VERSION = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
 
 DEBUGGING_THIS_MODULE = False
@@ -139,7 +139,7 @@ def transliterate_Hebrew(input:str, capitaliseHebrew=False) -> str:
     for tsv_row in hebrew_tsv_rows:
         transliteratedHebrewInput = transliteratedHebrewInput.replace( tsv_row['hbo'], tsv_row['en'] )
 
-    # Fix YHWH to our desired 'yahweh'
+    # Fix YHWH to our desired 'yahweh' -- NO, WE LET THE CALLING ROUTINE FIX THAT
     # TODO: What if it's in a compound like v... b... m... ?
     # transliteratedHebrewInput = transliteratedHebrewInput.replace( 'yəhvāh', 'yahweh' ) # vowels for adonai -- TODO: Could this be over-reaching, i.e., in the middle of some other word ???
 
@@ -164,6 +164,22 @@ def transliterate_Hebrew(input:str, capitaliseHebrew=False) -> str:
             transliteratedHebrewInput = transliteratedHebrewInput[1:] # Remove the first of the duplicate letters
             # NOTE: This doesn't work for consecutive words
     except IndexError: pass # probably a very short Hebrew string
+
+    # Correct dagesh giving double letters after maqaf (now hyphen)
+    searchStartIndex = 0
+    for _safetyCount in range( 2_000 ): # 1880 wasn't enough for one of the Hebrew word pages
+        try: ixHyphen = transliteratedHebrewInput.index( '-', searchStartIndex )
+        except ValueError: break
+        nextChar1 = transliteratedHebrewInput[ixHyphen+1]
+        try: nextChar2 = transliteratedHebrewInput[ixHyphen+2]
+        except IndexError: break # it was at the end of the word/string
+        if nextChar2 == nextChar1:
+            assert nextChar1 in 'bdfghklmnpqrsştţvz'
+            transliteratedHebrewInput = f'{transliteratedHebrewInput[:ixHyphen+1]}{transliteratedHebrewInput[ixHyphen+2:]}' # Delete the doubled consonant
+        searchStartIndex = ixHyphen + 1
+    else:
+        logging.critical( f"Not enough {_safetyCount} hyphen {transliteratedHebrewInput.count( '-' )} loop iterations for ({len(hebrewInput)}) {hebrewInput[:200]=}… from {input[:800]=}…" )
+        not_enough_hyphen_loop_iterations_in_transliterateHebrew
 
     # Now to handle everything properly, we have to post-process each transliterated Hebrew word
     # We get cleaned words, but do the substitutions on the actual transliterated string
@@ -240,9 +256,11 @@ def transliterate_Hebrew(input:str, capitaliseHebrew=False) -> str:
             if prevChar1 in 'ʼˊbdfghḩkⱪlmnpqrsşštţʦvⱱyz' and prevChar2 in 'aeiou': # short vowels, then this shwa should be a silent one
                 dPrint('Info', DEBUGGING_THIS_MODULE, f"      RemovingA schwa preceded by short vowel '{prevChar2}' from '{cleanedTransliteratedHebrewWord}' from '{input}'")
                 if nextChar2==nextChar1: # then the next consonant must have a dagesh
-                    assert nextChar1 in 'dgkmpqrşštʦy', f"{prevChar1=} {nextChar1=}"
-                    numLettersToDelete = 2 # But it doesn't need to be doubled at the beginning of the next syllable
-                    dPrint('Verbose', DEBUGGING_THIS_MODULE, f"       Also removing doubled '{nextChar1}' after shwa from '{cleanedTransliteratedHebrewWord}'" )
+                    if nextChar1 in 'dgkmpqrşštʦy':
+                        numLettersToDelete = 2 # But it doesn't need to be doubled at the beginning of the next syllable
+                        dPrint('Verbose', DEBUGGING_THIS_MODULE, f"       Also removing doubled '{nextChar1}' after shwa from '{cleanedTransliteratedHebrewWord}'" )
+                    elif nextChar1!='ū':
+                        raise ValueError( f"Unexpected transliterated Hebrew chars {prevChar1=} {nextChar1=}" )
                 # elif cleanedTransliteratedHebrewWord[shwaIndex+1:].startswith( 'shsh' ):
                 #     numLettersToDelete = 3 # But it doesn't need to be doubled at the beginning of the next syllable
                 #     print( f"       Also removing doubled 'sh' after shwa from '{cleanedTransliteratedHebrewWord}'" )
@@ -397,48 +415,48 @@ Genesis_1 = '''Chapter 1
 6:8 וְנֹ֕חַ מָ֥צָא חֵ֖ן בְּעֵינֵ֥י יְהוָֽה׃פ
 '''
 Expected_Gen_1_result_words = ['Chapter', '1',
-                               '1', 'bərēʼshiyt', 'bārāʼ', 'ʼₑlohiym', 'ʼēt', 'hashshāmayim', 'vəʼēt', 'hāʼāreʦ.',
-                               '2', 'vəhāʼāreʦ', 'hāyətāh', 'tohū', 'vāⱱohū', 'vəḩoshek', 'ˊal-pənēy', 'təhōm', 'vərūaḩ', 'ʼₑlohiym', 'məraḩefet', 'ˊal-pənēy', 'hammāyim.',
-                               '3', 'vayyoʼmer', 'ʼₑlohiym', 'yəhiy', 'ʼōr', 'vayhī-ʼōr.',
-                               '4', 'vayyarʼ', 'ʼₑlohiym', 'ʼet-hāʼōr', 'ⱪī-ţōⱱ', 'vayyaⱱddēl', 'ʼₑlohiym', 'bēyn', 'hāʼōr', 'ūⱱēyn', 'haḩoshek.',
-                               '5', 'vayyiqrāʼ', 'ʼₑlohiym', 'lāʼōr', 'yōm', 'vəlaḩoshek', 'qārāʼ', 'lāyəlāh', 'vayhī-ˊereⱱ', 'vayhī-ⱱoqer', 'yōm', 'ʼeḩād.', 'f',
+                               '1', 'bərēʼshit', 'bārāʼ', 'ʼₑlohim', 'ʼēt', 'hashshāmayim', 'vəʼēt', 'hāʼāreʦ.',
+                               '2', 'vəhāʼāreʦ', 'hāyətāh', 'tohū', 'vāⱱohū', 'vəḩoshek', 'ˊal-pənēy', 'təhōm', 'vərūaḩ', 'ʼₑlohim', 'məraḩefet', 'ˊal-pənēy', 'hammāyim.',
+                               '3', 'vayyoʼmer', 'ʼₑlohim', 'yəhiy', 'ʼōr', 'vayhī-ʼōr.',
+                               '4', 'vayyarʼ', 'ʼₑlohim', 'ʼet-hāʼōr', 'kī-ţōⱱ', 'vayyaⱱdēl', 'ʼₑlohim', 'bēyn', 'hāʼōr', 'ūⱱēyn', 'haḩoshek.',
+                               '5', 'vayyiqrāʼ', 'ʼₑlohim', 'lāʼōr', 'yōm', 'vəlaḩoshek', 'qārāʼ', 'lāyəlāh', 'vayhī-ˊereⱱ', 'vayhī-ⱱoqer', 'yōm', 'ʼeḩād.', 'f',
 
-                               '6', 'vayyoʼmer', 'ʼₑlohiym', 'yəhiy', 'rāqiyˊa', 'bətōk', 'hammāyim', 'vīhiy', 'maⱱddiyl', 'bēyn', 'mayim', 'lāmāyim.',
-                               '7', 'vayyaˊas', 'ʼₑlohīm', 'ʼet-hārāqīˊa', 'vayyaⱱddēl', 'bēyn', 'hammayim', 'ʼₐsher', 'mittaḩat', 'lārāqiyˊa', 'ūⱱēyn', 'hammayim', 'ʼₐsher', 'mēˊal', 'lārāqiyˊa', 'vayhī-kēn.',
-                               '8', 'vayyiqrāʼ', 'ʼₑlohiym', 'lārāqiyˊa', 'shāmāyim', 'vayhī-ˊereⱱ', 'vayhī-ⱱoqer', 'yōm', 'shēniy.', 'f',
+                               '6', 'vayyoʼmer', 'ʼₑlohim', 'yəhiy', 'rāqiyˊa', 'bətōk', 'hammāyim', 'vīhiy', 'maⱱdil', 'bēyn', 'mayim', 'lāmāyim.',
+                               '7', 'vayyaˊas', 'ʼₑlohīm', 'ʼet-hārāqīˊa', 'vayyaⱱdēl', 'bēyn', 'hammayim', 'ʼₐsher', 'mittaḩat', 'lārāqiyˊa', 'ūⱱēyn', 'hammayim', 'ʼₐsher', 'mēˊal', 'lārāqiyˊa', 'vayhī-kēn.',
+                               '8', 'vayyiqrāʼ', 'ʼₑlohim', 'lārāqiyˊa', 'shāmāyim', 'vayhī-ˊereⱱ', 'vayhī-ⱱoqer', 'yōm', 'shēniy.', 'f',
 
-                               '9', 'vayyoʼmer', 'ʼₑlohiym', 'yiqqāvū', 'hammayim', 'mittaḩat', 'hashshāmayim', 'ʼel-māqōm', 'ʼeḩād', 'vətērāʼeh', 'hayyabāshāh', 'vayhī-kēn.',
-                               '10', 'vayyiqrāʼ', 'ʼₑlohiym', 'layyabāshāh', 'ʼereʦ', 'ūləmiqvēh', 'hammayim', 'qārāʼ', 'yammiym', 'vayyarʼ', 'ʼₑlohiym', 'ⱪī-ţōⱱ.',
-                               '11', 'vayyoʼmer', 'ʼₑlohiym', 'tadshēʼ', 'hāʼāreʦ', 'desheʼ', 'ˊēseⱱ', 'mazriyˊa', 'zeraˊ', 'ˊēʦ', 'pəriy', 'ˊoseh', 'pərī', 'ləmīnō', 'ʼₐsher', 'zarˊō-ⱱō', 'ˊal-hāʼāreʦ', 'vayhī-kēn.',
-                               '12', 'vattōʦēʼ', 'hāʼāreʦ', 'desheʼ', 'ˊēseⱱ', 'mazriyˊa', 'zeraˊ', 'ləmīnēhū', 'vəˊēʦ', 'ˊoseh-pəriy', '', 'ʼₐsher', 'zarˊō-ⱱō', 'ləmīnēhū', 'vayyarʼ', 'ʼₑlohiym', 'ⱪī-ţōⱱ.',
+                               '9', 'vayyoʼmer', 'ʼₑlohim', 'yiqqāvū', 'hammayim', 'mittaḩat', 'hashshāmayim', 'ʼel-māqōm', 'ʼeḩād', 'vətērāʼeh', 'hayyabāshāh', 'vayhī-kēn.',
+                               '10', 'vayyiqrāʼ', 'ʼₑlohim', 'layyabāshāh', 'ʼereʦ', 'ūləmiqvēh', 'hammayim', 'qārāʼ', 'yammim', 'vayyarʼ', 'ʼₑlohim', 'kī-ţōⱱ.',
+                               '11', 'vayyoʼmer', 'ʼₑlohim', 'tadshēʼ', 'hāʼāreʦ', 'desheʼ', 'ˊēseⱱ', 'mazriyˊa', 'zeraˊ', 'ˊēʦ', 'pəriy', 'ˊoseh', 'pərī', 'ləmīnō', 'ʼₐsher', 'zarˊō-ⱱō', 'ˊal-hāʼāreʦ', 'vayhī-kēn.',
+                               '12', 'vattōʦēʼ', 'hāʼāreʦ', 'desheʼ', 'ˊēseⱱ', 'mazriyˊa', 'zeraˊ', 'ləmīnēhū', 'vəˊēʦ', 'ˊoseh-pəriy', '', 'ʼₐsher', 'zarˊō-ⱱō', 'ləmīnēhū', 'vayyarʼ', 'ʼₑlohim', 'kī-ţōⱱ.',
                                '13', 'vayhī-ˊereⱱ', 'vayhī-ⱱoqer', 'yōm', 'shəlīshiy.', 'f',
 
-                               '14', 'vayyoʼmer', 'ʼₑlohiym', 'yəhiy', 'məʼorot', 'birqiyˊa', 'hashshāmayim', 'ləhaⱱddiyl', 'bēyn', 'hayyōm', 'ūⱱēyn', 'hallāyəlāh', 'vəhāyū', 'ləʼotot', 'ūləmōˊₐdiym', 'ūləyāmiym', 'vəshāniym.',
-                               '15', 'vəhāyū', 'limʼōrot', 'birqiyˊa', 'hashshāmayim', 'ləhāʼiyr', 'ˊal-hāʼāreʦ', 'vayhī-kēn.',
-                               '16', 'vayyaˊas', 'ʼₑlohiym', 'ʼet-shənēy', 'hamməʼorot', 'haggədoliym', 'ʼet-hammāʼōr', 'haggādol', 'ləmemshelet', 'hayyōm',
-                                        'vəʼet-hammāʼōr', 'haqqāţon', 'ləmemshelet', 'hallaylāh', 'vəʼēt', 'haⱪōkāⱱiym.',
-                               '17', 'vayyittēn', 'ʼotām', 'ʼₑlohiym', 'birqiyˊa', 'hashshāmāyim', 'ləhāʼiyr', 'ˊal-hāʼāreʦ.',
-                               '18', 'vəlimshol', 'bayyōm', 'ūⱱallaylāh', 'ūlₐhaⱱddiyl', 'bēyn', 'hāʼōr', 'ūⱱēyn', 'haḩoshek', 'vayyarʼ', 'ʼₑlohiym', 'ⱪī-ţōⱱ.',
+                               '14', 'vayyoʼmer', 'ʼₑlohim', 'yəhiy', 'məʼorot', 'birqiyˊa', 'hashshāmayim', 'ləhaⱱdil', 'bēyn', 'hayyōm', 'ūⱱēyn', 'hallāyəlāh', 'vəhāyū', 'ləʼotot', 'ūləmōˊₐdim', 'ūləyāmim', 'vəshānim.',
+                               '15', 'vəhāyū', 'limʼōrot', 'birqiyˊa', 'hashshāmayim', 'ləhāʼir', 'ˊal-hāʼāreʦ', 'vayhī-kēn.',
+                               '16', 'vayyaˊas', 'ʼₑlohim', 'ʼet-shənēy', 'hamməʼorot', 'haggədolim', 'ʼet-hammāʼōr', 'haggādol', 'ləmemshelet', 'hayyōm',
+                                        'vəʼet-hammāʼōr', 'haqqāţon', 'ləmemshelet', 'hallaylāh', 'vəʼēt', 'hakkōkāⱱim.',
+                               '17', 'vayyittēn', 'ʼotām', 'ʼₑlohim', 'birqiyˊa', 'hashshāmāyim', 'ləhāʼir', 'ˊal-hāʼāreʦ.',
+                               '18', 'vəlimshol', 'bayyōm', 'ūⱱallaylāh', 'ūlₐhaⱱdil', 'bēyn', 'hāʼōr', 'ūⱱēyn', 'haḩoshek', 'vayyarʼ', 'ʼₑlohim', 'kī-ţōⱱ.',
                                '19', 'vayhī-ˊereⱱ', 'vayhī-ⱱoqer', 'yōm', 'rəⱱīˊiy.', 'f',
 
-                               '20', 'vayyoʼmer', 'ʼₑlohiym', 'yishərəʦū', 'hammayim', 'shereʦ', 'nefesh', 'ḩayyāh', 'vəˊōf', 'yəˊōfēf', 'ˊal-hāʼāreʦ', 'ˊal-pənēy', 'rəqiyˊa', 'hashshāmāyim.',
-                               '21', 'vayyiⱱrāʼ', 'ʼₑlohiym', 'ʼet-hattannīnim', 'haggədoliym',
-                                        'vəʼēt', 'ⱪāl-nefesh', 'haḩayyāh', 'hāromeset', 'ʼₐsher', 'shārəʦū', 'hammayim', 'ləmiynēhem', 'vəʼēt', 'ⱪāl-ˊōf', 'ⱪānāf', 'ləmīnēhū', 'vayyarʼ', 'ʼₑlohiym', 'ⱪī-ţōⱱ.',
-                               '22', 'vayⱱārek', 'ʼotām', 'ʼₑlohiym', 'lēʼmor', 'pərū', 'ūrəⱱū', 'ūmilʼū', 'ʼet-hammayim', 'bayyammiym', 'vəhāˊōf', 'yireⱱ', 'bāʼāreʦ.',
+                               '20', 'vayyoʼmer', 'ʼₑlohim', 'yishrəʦū', 'hammayim', 'shereʦ', 'nefesh', 'ḩayyāh', 'vəˊōf', 'yəˊōfēf', 'ˊal-hāʼāreʦ', 'ˊal-pənēy', 'rəqiyˊa', 'hashshāmāyim.',
+                               '21', 'vayyiⱱrāʼ', 'ʼₑlohim', 'ʼet-hattannīnim', 'haggədolim',
+                                        'vəʼēt', 'kāl-nefesh', 'haḩayyāh', 'hāromeset', 'ʼₐsher', 'shārəʦū', 'hammayim', 'ləminēhem', 'vəʼēt', 'kāl-ˊōf', 'kānāf', 'ləmīnēhū', 'vayyarʼ', 'ʼₑlohim', 'kī-ţōⱱ.',
+                               '22', 'vayⱱārek', 'ʼotām', 'ʼₑlohim', 'lēʼmor', 'pərū', 'ūrəⱱū', 'ūmilʼū', 'ʼet-hammayim', 'bayyammim', 'vəhāˊōf', 'yireⱱ', 'bāʼāreʦ.',
                                '23', 'vayhī-ˊereⱱ', 'vayhī-ⱱoqer', 'yōm', 'ḩₐmīshiy.', 'f',
 
-                               '24', 'vayyoʼmer', 'ʼₑlohiym', 'tōʦēʼ', 'hāʼāreʦ', 'nefesh', 'ḩayyāh', 'ləmīnāh', 'bəhēmāh', 'vāremes', 'vəḩaytō-ʼereʦ', 'ləmīnāh', 'vayhī-kēn.',
-                               '25', 'vayyaˊas', 'ʼₑlohīm', 'ʼet-ḩayyat', 'hāʼāreʦ', 'ləmīnāh', 'vəʼet-habhēmāh', 'ləmīnāh', 'vəʼēt', 'ⱪāl-remes', 'hāʼₐdāmāh', 'ləmīnēhū', 'vayyarʼ', 'ʼₑlohiym', 'ⱪī-ţōⱱ.',
-                               '26', 'vayyoʼmer', 'ʼₑlohiym', 'naˊₐseh', 'ʼādām', 'bəʦalmēnū', 'ⱪidmūtēnū', 'vəyirddū', 'ⱱidgat', 'hayyām', 'ūⱱəˊōf', 'hashshāmayim', 'ūⱱabhēmāh', 'ūⱱəkāl-hāʼāreʦ', 'ūⱱəkāl-hāremes', 'hāromēs', 'ˊal-hāʼāreʦ.',
-                               '27', 'vayyiⱱrāʼ', 'ʼₑlohiym', 'ʼet-hāʼādām', 'bəʦalmō', 'bəʦelem', 'ʼₑlohiym', 'bārāʼ', 'ʼotō', 'zākār', 'ūnəqēⱱāh', 'bārāʼ', 'ʼotām.',
-                               '28', 'vayⱱārek', 'ʼotām', 'ʼₑlohīm', 'vayyoʼmer', 'lāhem', 'ʼₑlohiym', 'pərū', 'ūrəⱱū', 'ūmilʼū', 'ʼet-hāʼāreʦ',
+                               '24', 'vayyoʼmer', 'ʼₑlohim', 'tōʦēʼ', 'hāʼāreʦ', 'nefesh', 'ḩayyāh', 'ləmīnāh', 'bəhēmāh', 'vāremes', 'vəḩaytō-ʼereʦ', 'ləmīnāh', 'vayhī-kēn.',
+                               '25', 'vayyaˊas', 'ʼₑlohīm', 'ʼet-ḩayyat', 'hāʼāreʦ', 'ləmīnāh', 'vəʼet-habhēmāh', 'ləmīnāh', 'vəʼēt', 'kāl-remes', 'hāʼₐdāmāh', 'ləmīnēhū', 'vayyarʼ', 'ʼₑlohim', 'kī-ţōⱱ.',
+                               '26', 'vayyoʼmer', 'ʼₑlohim', 'naˊₐseh', 'ʼādām', 'bəʦalmēnū', 'kidmūtēnū', 'vəyirdū', 'ⱱidgat', 'hayyām', 'ūⱱəˊōf', 'hashshāmayim', 'ūⱱabhēmāh', 'ūⱱəkāl-hāʼāreʦ', 'ūⱱəkāl-hāremes', 'hāromēs', 'ˊal-hāʼāreʦ.',
+                               '27', 'vayyiⱱrāʼ', 'ʼₑlohim', 'ʼet-hāʼādām', 'bəʦalmō', 'bəʦelem', 'ʼₑlohim', 'bārāʼ', 'ʼotō', 'zākār', 'ūnəqēⱱāh', 'bārāʼ', 'ʼotām.',
+                               '28', 'vayⱱārek', 'ʼotām', 'ʼₑlohīm', 'vayyoʼmer', 'lāhem', 'ʼₑlohim', 'pərū', 'ūrəⱱū', 'ūmilʼū', 'ʼet-hāʼāreʦ',
                                         'vəkiⱱshuhā', 'ūrədū', 'bidgat', 'hayyām', 'ūⱱəˊōf', 'hashshāmayim', 'ūⱱəkāl-ḩayyāh', 'hāromeset', 'ˊal-hāʼāreʦ.',
-                               '29', 'vayyoʼmer', 'ʼₑlohiym', 'hinnēh', 'nātattī', 'lākem', 'ʼet-ⱪāl-ˊēseⱱ', 'zorēˊa', 'zeraˊ', 'ʼₐsher', 'ˊal-pənēy', 'kāl-hāʼāreʦ',
-                                        'vəʼet-ⱪāl-hāˊēʦ', 'ʼₐsher-bō', 'fərī-ˊēʦ', 'zorēˊa', 'zāraˊ', 'lākem', 'yihyeh', 'ləʼākəlāh.',
-                               '30', 'ūləkāl-ḩayyat', 'hāʼāreʦ', 'ūləkāl-ˊōf', 'hashshāmayim', 'ūləkol', 'rōmēs', 'ˊal-hāʼāreʦ', 'ʼₐsher-bō', 'nefesh', 'ḩayyāh', 'ʼet-ⱪāl-yereq', 'ˊēseⱱ', 'ləʼākəlāh', 'vayhī-kēn.',
-                               '31', 'vayyarʼ', 'ʼₑlohīm', 'ʼet-ⱪāl-ʼₐsher', 'ˊāsāh', 'vəhinnēh-ţōⱱ', 'məʼod', 'vayhī-ˊereⱱ', 'vayhī-ⱱoqer', 'yōm', 'hashshishshiy.', 'f',
-                               '2:4', 'ʼēlleh', 'tōlədōt', 'hashshāmayim', 'vəhāʼāreʦ', 'bəhibārəʼām', 'bəyōm', 'ˊₐsōt', 'yahweh', 'ʼₑlohiym', 'ʼereʦ', 'vəshāmāyim.',
-                               '6:8', 'vənoaḩ', 'māʦāʼ', 'ḩēn', 'bəˊēynēy', 'yahweh.◊']
+                               '29', 'vayyoʼmer', 'ʼₑlohim', 'hinnēh', 'nātattī', 'lākem', 'ʼet-kāl-ˊēseⱱ', 'zorēˊa', 'zeraˊ', 'ʼₐsher', 'ˊal-pənēy', 'kāl-hāʼāreʦ',
+                                        'vəʼet-kāl-hāˊēʦ', 'ʼₐsher-bō', 'fərī-ˊēʦ', 'zorēˊa', 'zāraˊ', 'lākem', 'yihyeh', 'ləʼākəlāh.',
+                               '30', 'ūləkāl-ḩayyat', 'hāʼāreʦ', 'ūləkāl-ˊōf', 'hashshāmayim', 'ūləkol', 'rōmēs', 'ˊal-hāʼāreʦ', 'ʼₐsher-bō', 'nefesh', 'ḩayyāh', 'ʼet-kāl-yereq', 'ˊēseⱱ', 'ləʼākəlāh', 'vayhī-kēn.',
+                               '31', 'vayyarʼ', 'ʼₑlohīm', 'ʼet-kāl-ʼₐsher', 'ˊāsāh', 'vəhinnēh-ţōⱱ', 'məʼod', 'vayhī-ˊereⱱ', 'vayhī-ⱱoqer', 'yōm', 'hashshishshiy.', 'f',
+                               '2:4', 'ʼēlleh', 'tōlədōt', 'hashshāmayim', 'vəhāʼāreʦ', 'bəhibārəʼām', 'bəyōm', 'ˊₐsōt', 'yəhvāh', 'ʼₑlohim', 'ʼereʦ', 'vəshāmāyim.',
+                               '6:8', 'vənoaḩ', 'māʦāʼ', 'ḩēn', 'bəˊēynēy', 'yəhvāh.◊']
 
 
 Matthew_1 = '''\\v 1 ¶Βίβλος γενέσεως Ἰησοῦ Χριστοῦ, υἱοῦ Δαυὶδ, υἱοῦ Ἀβραάμ:
@@ -521,11 +539,28 @@ def briefDemo() -> None:
     if not check_text(result): have_bad_transliteration
 
     vPrint( 'Normal', DEBUGGING_THIS_MODULE, "\nTesting Hebrew schwa's…" )
-    for hebWord in ('וְ⁠אֶל־מֹשֶׁ֨ה', 'אֶל־יְהוָ֗ה', 'וְ⁠אַהֲרֹן֙', 'וְ⁠שִׁבְעִ֖ים', 'מִ⁠זִּקְנֵ֣י', 'יִשְׂרָאֵ֑ל', 'וְ⁠הִשְׁתַּחֲוִיתֶ֖ם'):
+    for hebWord,expectedResult in (('וְ⁠אֶל־מֹשֶׁ֨ה','vəʼel-mosheh'),
+                                   ('אֶל־יְהוָ֗ה','ʼel-yəhvāh'),
+                                   ('וְ⁠אַהֲרֹן֙','vəʼahₐron'),
+                                   ('וְ⁠שִׁבְעִ֖ים','vəshiⱱˊim'),
+                                   ('מִ⁠זִּקְנֵ֣י','mizziqnēy'),
+                                   ('יִשְׂרָאֵ֑ל','yisrāʼēl'),
+                                   ('וְ⁠הִשְׁתַּחֲוִיתֶ֖ם','vəhishtaḩₐvītem')
+                                   ):
         hebWord = hebWord.replace( '\u2060', '' ) # Remove word joiners
         assert 'ְ' in hebWord, f"{hebWord}"
         translit = transliterate_Hebrew( hebWord )
         print( f"{hebWord=} then {translit=}")
+        assert translit == expectedResult, f"{hebWord=} {translit=} {expectedResult=}"
+
+    vPrint( 'Normal', DEBUGGING_THIS_MODULE, "\nTesting title casing of individual Hebrew words…" )
+    for hebWord,expectedResult1,expectedResult2 in (('אֲרָם','ʼₐrām','ʼArām'),
+                                   ):
+        hebWord = hebWord.replace( '\u2060', '' ) # Remove word joiners
+        translit1 = transliterate_Hebrew( hebWord, capitaliseHebrew=False )
+        translit2 = transliterate_Hebrew( hebWord, capitaliseHebrew=True )
+        print( f"{hebWord=} then {translit1=} and {translit2=}")
+        assert translit1==expectedResult1 and translit2==expectedResult2, f"{hebWord=} {translit1=} {expectedResult1=} {translit2=} {expectedResult2=}"
 # end of BibleTransliterations.briefDemo
 
 def fullDemo() -> None:
