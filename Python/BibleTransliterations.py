@@ -42,7 +42,7 @@ from BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 LAST_MODIFIED_DATE = '2024-08-08' # by RJH
 SHORT_PROGRAM_NAME = "BibleTransliterations"
 PROGRAM_NAME = "Bible Transliterations handler"
-PROGRAM_VERSION = '0.32'
+PROGRAM_VERSION = '0.33'
 PROGRAM_NAME_VERSION = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
 
 DEBUGGING_THIS_MODULE = False
@@ -170,7 +170,10 @@ def transliterate_Hebrew(input:str, capitaliseHebrew=False) -> str:
     for _safetyCount in range( 2_000 ): # 1880 wasn't enough for one of the Hebrew word pages
         try: ixHyphen = transliteratedHebrewInput.index( '-', searchStartIndex )
         except ValueError: break
-        nextChar1 = transliteratedHebrewInput[ixHyphen+1]
+        try: nextChar1 = transliteratedHebrewInput[ixHyphen+1]
+        except IndexError:
+            logging.critical( f"Why was hyphen at end of Hebrew string? {transliteratedHebrewInput=}")
+            break # it was at the end of the word/string
         try: nextChar2 = transliteratedHebrewInput[ixHyphen+2]
         except IndexError: break # it was at the end of the word/string
         if nextChar2 == nextChar1:
@@ -550,7 +553,7 @@ def briefDemo() -> None:
         hebWord = hebWord.replace( '\u2060', '' ) # Remove word joiners
         assert 'ְ' in hebWord, f"{hebWord}"
         translit = transliterate_Hebrew( hebWord )
-        print( f"{hebWord=} then {translit=}")
+        print( f"  {hebWord=} then {translit=}")
         assert translit == expectedResult, f"{hebWord=} {translit=} {expectedResult=}"
 
     vPrint( 'Normal', DEBUGGING_THIS_MODULE, "\nTesting title casing of individual Hebrew words…" )
@@ -559,7 +562,7 @@ def briefDemo() -> None:
         hebWord = hebWord.replace( '\u2060', '' ) # Remove word joiners
         translit1 = transliterate_Hebrew( hebWord, capitaliseHebrew=False )
         translit2 = transliterate_Hebrew( hebWord, capitaliseHebrew=True )
-        print( f"{hebWord=} then {translit1=} and {translit2=}")
+        print( f"  {hebWord=} then {translit1=} and {translit2=}")
         assert translit1==expectedResult1 and translit2==expectedResult2, f"{hebWord=} {translit1=} {expectedResult1=} {translit2=} {expectedResult2=}"
 # end of BibleTransliterations.briefDemo
 
