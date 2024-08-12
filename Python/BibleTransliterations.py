@@ -39,7 +39,7 @@ from BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 
 
 
-LAST_MODIFIED_DATE = '2024-08-08' # by RJH
+LAST_MODIFIED_DATE = '2024-08-12' # by RJH
 SHORT_PROGRAM_NAME = "BibleTransliterations"
 PROGRAM_NAME = "Bible Transliterations handler"
 PROGRAM_VERSION = '0.33'
@@ -172,7 +172,7 @@ def transliterate_Hebrew(input:str, capitaliseHebrew=False) -> str:
         except ValueError: break
         try: nextChar1 = transliteratedHebrewInput[ixHyphen+1]
         except IndexError:
-            logging.critical( f"Why was hyphen at end of Hebrew string? {transliteratedHebrewInput=}")
+            logging.critical( f"Why was hyphen at end of Hebrew string? {transliteratedHebrewInput=} from {input=}")
             break # it was at the end of the word/string
         try: nextChar2 = transliteratedHebrewInput[ixHyphen+2]
         except IndexError: break # it was at the end of the word/string
