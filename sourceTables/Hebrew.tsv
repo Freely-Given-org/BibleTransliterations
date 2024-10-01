@@ -67,6 +67,7 @@ hbo	Meta	en	Comment
 לּ	Lamed	ll
 לָּ		llā	# Qamats is (wrongly?) BEFORE dagesh
 לֵּ		llē	# Tsere is (wrongly?) BEFORE dagesh
+לִּ		lli	# Hiriq is (wrongly?) BEFORE dagesh
 מ	Mem	m
 מּ	Mem	mm
 מָּ		mmā	# Qamats is (wrongly?) BEFORE dagesh
@@ -111,6 +112,8 @@ hbo	Meta	en	Comment
 שַׂ		sa	# Patah is (wrongly?) BEFORE sin dot
 שָׂ		sā	# Qamats is (wrongly?) BEFORE sin dot
 שֶׂ		se	# Segol is (wrongly?) BEFORE sin dot
+שֵׂ		sē	# Tsere is (wrongly?) BEFORE sin dot
+שִׂ		si	# Hiriq is (wrongly?) BEFORE sin dot
 שָּׂ		ssā	# Qamats is (wrongly?) BEFORE dagesh which is BEFORE sin dot
 שׁ	Shin	š	#
 שׁ	Shin	š	# Keep shin as a single consonant for now (for easier processing) then change to sh later
@@ -120,6 +123,7 @@ hbo	Meta	en	Comment
 שּׂ	Sin	ss
 ת	Tav	t
 תּ	Tav	tt
+תְּ		ttə	# Shva is (wrongly?) BEFORE dagesh
 תַּ		tta	# Patah is (wrongly?) BEFORE dagesh
 תָּ		ttā	# Qamats is (wrongly?) BEFORE dagesh
 תֶּ		tte	# Segol is (wrongly?) BEFORE dagesh
