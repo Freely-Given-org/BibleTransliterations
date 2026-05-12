@@ -1,0 +1,516 @@
+use csv::ReaderBuilder;
+use once_cell::sync::OnceCell;
+use serde::Deserialize;
+use std::fs::File;
+use std::path::Path;
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct Row {
+    #[serde(alias = "hbo", alias = "x-grc-koine")]
+    pub source: String,
+    #[serde(default)]
+    pub en: String,
+}
+
+static HEBREW_TABLE: OnceCell<Vec<Row>> = OnceCell::new();
+static GREEK_TABLE: OnceCell<Vec<Row>> = OnceCell::new();
+
+pub fn load_hebrew_table(path: impl AsRef<Path>) -> Result<(), Box<dyn std::error::Error>> {
+    let rows = load_table(path.as_ref(), "hbo")?;
+    let _ = HEBREW_TABLE.set(rows);
+    Ok(())
+}
+
+pub fn load_greek_table(path: impl AsRef<Path>) -> Result<(), Box<dyn std::error::Error>> {
+    let rows = load_table(path.as_ref(), "x-grc-koine")?;
+    let _ = GREEK_TABLE.set(rows);
+    Ok(())
+}
+
+fn load_table(path: &Path, _source_col: &str) -> Result<Vec<Row>, Box<dyn std::error::Error>> {
+    let file = File::open(path)?;
+    let mut reader = ReaderBuilder::new()
+        .delimiter(b'\t')
+        .has_headers(true)
+        .flexible(true)
+        .from_reader(file);
+
+    let mut rows = Vec::new();
+    for result in reader.records() {
+        let record = result?;
+        let source = record.get(0).unwrap_or("").to_string();
+        let en = record.get(2).unwrap_or("").to_string();
+        if source.is_empty() {
+             continue;
+        }
+        rows.push(Row { source, en });
+    }
+
+    // Must sort so the longest sequences go first
+    rows.sort_by_key(|r| std::cmp::Reverse(r.source.chars().count()));
+    Ok(rows)
+}
+
+fn is_hebrew(c: char) -> bool {
+    ('\u{0590}'..='\u{05FF}').contains(&c) || ('\u{FB1D}'..='\u{FB4F}').contains(&c)
+}
+
+fn is_greek(c: char) -> bool {
+    ('\u{0370}'..='\u{03FF}').contains(&c) || ('\u{1F00}'..='\u{1FFF}').contains(&c)
+}
+
+pub fn transliterate_hebrew(input: &str, capitalise_hebrew: bool) -> String {
+    // Find the index of the first Hebrew character in the INPUT string
+    let first_hebrew_index = match input.char_indices().find(|&(_, c)| is_hebrew(c)).map(|(i, _)| i) {
+        Some(i) => i,
+        None => return input.to_string(),
+    };
+
+    let past_hebrew_index = input.char_indices().rev().find(|&(_, c)| is_hebrew(c))
+        .map(|(i, c)| i + c.len_utf8()).unwrap_or(input.len());
+
+    // Now extract the Hebrew segment of the input
+    let hebrew_input = &input[first_hebrew_index..past_hebrew_index];
+
+    // Transliterate Hebrew letters to English
+    let mut result = hebrew_input.to_string();
+    if let Some(table) = HEBREW_TABLE.get() {
+        for row in table {
+            result = result.replace(&row.source, &row.en);
+        }
+    }
+
+    // Fix something like 'שִׁילֹה' which becomes 'Shiyloh' but shouldn't have that 'y'
+    let mut search_start_index = 0;
+    for _ in 0..2000 {
+        if let Some(ix_iy) = result[search_start_index..].find("iy") {
+            let abs_ix_iy = search_start_index + ix_iy;
+            if let Some(next_char) = result[abs_ix_iy + 2..].chars().next() {
+                if "bdfghklmnpqrsştţvz".contains(next_char) {
+                    result.remove(abs_ix_iy + 1); // Delete the y
+                    search_start_index = abs_ix_iy + 1; // skip 'i' and then the new next_char
+                } else {
+                    search_start_index = abs_ix_iy + 2;
+                }
+            } else {
+                break; // it was at the end
+            }
+        } else {
+            break;
+        }
+    }
+
+    // Correct dagesh in first letter giving double letters
+    let chars: Vec<char> = result.chars().collect();
+    if chars.len() >= 2 && chars[0] == chars[1] {
+        result = chars[1..].iter().collect();
+    }
+
+    // Correct dagesh giving double letters after maqaf (now hyphen)
+    search_start_index = 0;
+    for _ in 0..2000 {
+        if let Some(ix_hyphen) = result[search_start_index..].find('-') {
+            let abs_ix_hyphen = search_start_index + ix_hyphen;
+            let chars_after: Vec<char> = result[abs_ix_hyphen + 1..].chars().collect();
+            if chars_after.len() >= 2 {
+                let next_char1 = chars_after[0];
+                let next_char2 = chars_after[1];
+                if next_char1 == next_char2 && "bdfghklmnpqrsştţvz".contains(next_char1) {
+                    // Delete the doubled consonant
+                    let mut new_result = String::with_capacity(result.len());
+                    new_result.push_str(&result[..abs_ix_hyphen + 1]);
+                    new_result.push_str(&result[abs_ix_hyphen + 2..]);
+                    result = new_result;
+                    search_start_index = abs_ix_hyphen + 1;
+                } else {
+                    search_start_index = abs_ix_hyphen + 1;
+                }
+            } else {
+                break;
+            }
+        } else {
+            break;
+        }
+    }
+
+    // Post-process each transliterated Hebrew word
+    let mut cleaned_result = result.clone();
+    let cleaned = result.replace(',', " ").replace('.', " ").replace('-', " ")
+        .replace("htm#Top\">", " ").replace("htm\">", " ").replace("</a>", "")
+        .replace('\n', " ");
+    
+    let cleaned = cleaned.replace("   ", " ").replace("  ", " ").trim_end().to_string();
+
+    for (cc, cleaned_word) in cleaned.split(' ').enumerate() {
+        if cleaned_word.is_empty() || cleaned_word.chars().all(|c| c.is_ascii_digit()) || cleaned_word.chars().count() < 2 {
+            continue;
+        }
+
+        let mut word_to_fix = cleaned_word.to_string();
+
+        // Handle bad dagesh consonant doubling at the beginning of words
+        let word_chars: Vec<char> = word_to_fix.chars().collect();
+        if word_chars.len() >= 2 && word_chars[0] == word_chars[1] {
+            let replacement = word_chars[1..].iter().collect::<String>();
+            
+            if cc == 0 && cleaned_result.starts_with(&word_to_fix) {
+                cleaned_result = cleaned_result.replacen(&word_to_fix, &replacement, 1);
+            } else {
+                cleaned_result = cleaned_result.replace(&format!(" {}", word_to_fix), &format!(" {}", replacement));
+                cleaned_result = cleaned_result.replace(&format!(">{}", word_to_fix), &format!(">{}", replacement));
+            }
+            word_to_fix = replacement;
+        }
+
+        // Handle final ḩa and ha
+        if let Some(stripped) = word_to_fix.strip_suffix("ḩa") {
+            let replacement = format!("{}aḩ", stripped);
+            if cleaned_result.ends_with(&word_to_fix) {
+                cleaned_result = cleaned_result.replace(&word_to_fix, &replacement);
+            } else {
+                cleaned_result = cleaned_result.replace(&format!("{} ", word_to_fix), &format!("{} ", replacement));
+                cleaned_result = cleaned_result.replace(&format!("{}<", word_to_fix), &format!("{}<", replacement));
+            }
+        } else if word_to_fix.len() > 2 {
+            if let Some(stripped) = word_to_fix.strip_suffix("ha") {
+                let replacement = format!("{}ah", stripped);
+                if cleaned_result.ends_with(&word_to_fix) {
+                    cleaned_result = cleaned_result.replace(&word_to_fix, &replacement);
+                } else {
+                    cleaned_result = cleaned_result.replace(&format!("{} ", word_to_fix), &format!("{} ", replacement));
+                    cleaned_result = cleaned_result.replace(&format!("{}<", word_to_fix), &format!("{}<", replacement));
+                }
+            }
+        }
+    }
+    result = cleaned_result;
+
+    // Handle schwa
+    let cleaned = result.replace(',', " ").replace('.', " ").replace('\n', " ")
+        .replace("   ", " ").replace("  ", " ").trim_end().to_string();
+    
+    for cleaned_word in cleaned.split(' ') {
+        if cleaned_word.is_empty() || cleaned_word.chars().all(|c| c.is_ascii_digit()) || cleaned_word.chars().count() < 2 {
+            continue;
+        }
+        if !cleaned_word.contains('ə') {
+            continue;
+        }
+
+        let mut current_word = cleaned_word.to_string();
+        let mut word_search_start = 0;
+        for _ in 0..6 {
+            if let Some(shwa_index) = current_word[word_search_start..].find('ə') {
+                let abs_shwa_index = word_search_start + shwa_index;
+                let char_indices: Vec<(usize, char)> = current_word.char_indices().collect();
+                let char_pos = char_indices.iter().position(|&(i, _)| i == abs_shwa_index).unwrap();
+                
+                if char_pos < 2 {
+                    word_search_start = abs_shwa_index + 'ə'.len_utf8();
+                    continue;
+                }
+
+                let prev_char1 = char_indices[char_pos - 1].1;
+                let prev_char2 = char_indices[char_pos - 2].1;
+                
+                let next_char1 = char_indices.get(char_pos + 1).map(|&(_, c)| c);
+                let next_char2 = char_indices.get(char_pos + 2).map(|&(_, c)| c);
+
+                let mut num_letters_to_delete = 'ə'.len_utf8();
+                if "ʼˊbdfghḩkⱪlmnpqrsşštţʦvⱱyz".contains(prev_char1) && "aeiou".contains(prev_char2) {
+                    if let Some(nc1) = next_char1 {
+                        if let Some(nc2) = next_char2 {
+                            if nc1 == nc2 && "dgkmpqrşštţʦy".contains(nc1) {
+                                num_letters_to_delete += nc1.len_utf8();
+                            }
+                        }
+                    }
+                    
+                    let mut new_word = String::with_capacity(current_word.len());
+                    new_word.push_str(&current_word[..abs_shwa_index]);
+                    new_word.push_str(&current_word[abs_shwa_index + num_letters_to_delete..]);
+                    
+                    result = result.replace(&current_word, &new_word);
+                    current_word = new_word;
+                    word_search_start = abs_shwa_index;
+                } else {
+                    word_search_start = abs_shwa_index + 'ə'.len_utf8();
+                }
+            } else {
+                break;
+            }
+        }
+    }
+
+    result = result.replace('š', "sh");
+
+    if !capitalise_hebrew {
+        return format!("{}{}{}", &input[..first_hebrew_index], result, &input[past_hebrew_index..]);
+    }
+
+    // Capitalization logic
+    let mut capitalised = result.clone();
+    if capitalised.is_empty() {
+        return format!("{}{}{}", &input[..first_hebrew_index], capitalised, &input[past_hebrew_index..]);
+    }
+
+    let first_char = capitalised.chars().next().unwrap();
+    let first_char_len = first_char.len_utf8();
+
+    match first_char {
+        'ʦ' => {
+            capitalised = format!("Ts{}", &capitalised[first_char_len..]);
+        }
+        'ₐ' => {
+            capitalised = format!("A{}", &capitalised[first_char_len..]);
+        }
+        'ₑ' => {
+            capitalised = format!("E{}", &capitalised[first_char_len..]);
+        }
+        'ⱱ' => {
+            capitalised = format!("V{}", &capitalised[first_char_len..]);
+        }
+        'ʼ' | 'ˊ' => {
+            if let Some(second_char) = capitalised.chars().nth(1) {
+                let second_char_len = second_char.len_utf8();
+                match second_char {
+                    'ʦ' => {
+                        capitalised = format!("{}Ts{}", first_char, &capitalised[first_char_len + second_char_len..]);
+                    }
+                    'ₐ' => {
+                        capitalised = format!("{}A{}", first_char, &capitalised[first_char_len + second_char_len..]);
+                    }
+                    'ₑ' => {
+                        capitalised = format!("{}E{}", first_char, &capitalised[first_char_len + second_char_len..]);
+                    }
+                    'ⱱ' => {
+                        capitalised = format!("{}V{}", first_char, &capitalised[first_char_len + second_char_len..]);
+                    }
+                    _ => {
+                        let upper = second_char.to_uppercase().to_string();
+                        capitalised = format!("{}{}{}", first_char, upper, &capitalised[first_char_len + second_char_len..]);
+                    }
+                }
+            }
+        }
+        _ => {
+            let upper = first_char.to_uppercase().to_string();
+            capitalised = format!("{}{}", upper, &capitalised[first_char_len..]);
+        }
+    }
+
+    format!("{}{}{}", &input[..first_hebrew_index], capitalised, &input[past_hebrew_index..])
+}
+
+pub fn transliterate_greek(input: &str) -> String {
+    let first_greek_index = match input.char_indices().find(|&(_, c)| is_greek(c)).map(|(i, _)| i) {
+        Some(i) => i,
+        None => return input.to_string(),
+    };
+
+    let mut result = input.to_string();
+    if let Some(table) = GREEK_TABLE.get() {
+        for row in table {
+            result = result.replace(&row.source, &row.en);
+        }
+    }
+
+    // Transform aui to awi (esp. Dauid to Dawid)
+    if let Some(idx) = result[first_greek_index..].find("aui") {
+        let abs_idx = first_greek_index + idx;
+        result = format!("{}{}", &result[..abs_idx], result[abs_idx..].replace("aui", "awi"));
+    }
+
+    // Transform ie to ye at start
+    if result[first_greek_index..].starts_with("ie") {
+        result = format!("{}ye{}", &result[..first_greek_index], &result[first_greek_index + 2..]);
+    } else if result[first_greek_index..].starts_with("Ie") {
+        result = format!("{}Ye{}", &result[..first_greek_index], &result[first_greek_index + 2..]);
+    }
+
+    result
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+
+    fn init_tables() {
+        let base = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        let hebrew_path = base.join("../sourceTables/Hebrew.tsv");
+        let greek_path = base.join("../sourceTables/Greek.tsv");
+        
+        let _ = load_hebrew_table(&hebrew_path);
+        let _ = load_greek_table(&greek_path);
+    }
+
+    #[test]
+    fn test_hebrew_schwas() {
+        init_tables();
+        let cases = vec![
+            ("וְ⁠אֶל־מֹשֶׁ֨ה", "vəʼel-mosheh"),
+            ("אֶל־יְהוָ֗ה", "ʼel-yəhvāh"),
+            ("וְ⁠אַהֲרֹן֙", "vəʼahₐron"),
+            ("וְ⁠שִׁבְעִ֖ים", "vəshiⱱˊim"),
+            ("מִ⁠זִּקְנֵ֣י", "mizziqnēy"),
+            ("יִשְׂרָאֵ֑ל", "yisrāʼēl"),
+            ("וְ⁠הִשְׁתַּחֲוִיתֶ֖ם", "vəhishtaḩₐvītem"),
+        ];
+
+        for (heb, expected) in cases {
+            let heb = heb.replace('\u{2060}', "");
+            let result = transliterate_hebrew(&heb, false);
+            assert_eq!(result, expected);
+        }
+    }
+
+    #[test]
+    fn test_title_casing() {
+        init_tables();
+        let cases = vec![
+            ("אֲרָם", "ʼₐrām", "ʼArām"),
+        ];
+
+        for (heb, expected_false, expected_true) in cases {
+            let heb = heb.replace('\u{2060}', "");
+            let res_false = transliterate_hebrew(&heb, false);
+            let res_true = transliterate_hebrew(&heb, true);
+            assert_eq!(res_false, expected_false);
+            assert_eq!(res_true, expected_true);
+        }
+    }
+
+    const GENESIS_1: &str = r#"Chapter 1
+1 בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃
+2 וְהָאָ֗רֶץ הָיְתָ֥ה תֹ֨הוּ֙ וָבֹ֔הוּ וְחֹ֖שֶׁךְ עַל־פְּנֵ֣י תְה֑וֹם וְר֣וּחַ אֱלֹהִ֔ים מְרַחֶ֖פֶת עַל־פְּנֵ֥י הַמָּֽיִם׃
+3 וַיֹּ֥אמֶר אֱלֹהִ֖ים יְהִ֣י א֑וֹר וַֽיְהִי־אֽוֹר׃
+4 וַיַּ֧רְא אֱלֹהִ֛ים אֶת־הָא֖וֹר כִּי־ט֑וֹב וַיַּבְדֵּ֣ל אֱלֹהִ֔ים בֵּ֥ין הָא֖וֹר וּבֵ֥ין הַחֹֽשֶׁךְ׃
+5 וַיִּקְרָ֨א אֱלֹהִ֤ים ׀ לָאוֹר֙ י֔וֹם וְלַחֹ֖שֶׁךְ קָ֣רָא לָ֑יְלָה וַֽיְהִי־עֶ֥רֶב וַֽיְהִי־בֹ֖קֶר י֥וֹם אֶחָֽד׃ פ
+6 וַיֹּ֣אמֶר אֱלֹהִ֔ים יְהִ֥י רָקִ֖יעַ בְּת֣וֹךְ הַמָּ֑יִם וִיהִ֣י מַבְדִּ֔יל בֵּ֥ין מַ֖יִם לָמָֽיִם׃
+7 וַיַּ֣עַשׂ אֱלֹהִים֮ אֶת־הָרָקִיעַ֒ וַיַּבְדֵּ֗ל בֵּ֤ין הַמַּ֨יִם֙ אֲשֶׁר֙ מִתַּ֣חַת לָרָקִ֔יעַ וּבֵ֣ין הַמַּ֔יִם אֲשֶׁ֖ר מֵעַ֣ל לָרָקִ֑יעַ וַֽיְהִי־כֵֽן׃
+8 וַיִּקְרָ֧א אֱלֹהִ֛ים לָֽרָקִ֖יעַ שָׁמָ֑יִם וַֽיְהִי־עֶ֥רֶב וַֽיְהִי־בֹ֖קֶר י֥וֹם שֵׁנִֽי׃ פ
+9 וַיֹּ֣אמֶר אֱלֹהִ֗ים יִקָּו֨וּ הַמַּ֜יִם מִתַּ֤חַת הַשָּׁמַ֨יִם֙ אֶל־מָק֣וֹם אֶחָ֔ד וְתֵרָאֶ֖ה הַיַּבָּשָׁ֑ה וַֽיְהִי־כֵֽן׃
+10 וַיִּקְרָ֨א אֱלֹהִ֤ים ׀ לַיַּבָּשָׁה֙ אֶ֔רֶץ וּלְמִקְוֵ֥ה הַמַּ֖יִם קָרָ֣א יַמִּ֑ים וַיַּ֥רְא אֱלֹהִ֖ים כִּי־טֽוֹב׃
+11 וַיֹּ֣אמֶר אֱלֹהִ֗ים תַּֽדְשֵׁ֤א הָאָ֨רֶץ֙ דֶּ֔שֶׁא עֵ֚שֶׂב מַזְרִ֣יעַ זֶ֔רַע עֵ֣ץ פְּרִ֞י עֹ֤שֶׂה פְּרִי֙ לְמִינ֔וֹ אֲשֶׁ֥ר זַרְעוֹ־ב֖וֹ עַל־הָאָ֑רֶץ וַֽיְהִי־כֵֽן׃
+12 וַתּוֹצֵ֨א הָאָ֜רֶץ דֶּ֠שֶׁא עֵ֣שֶׂב מַזְרִ֤יעַ זֶ֨רַע֙ לְמִינֵ֔הוּ וְעֵ֧ץ עֹֽשֶׂה־פְּרִ֛י   אֲשֶׁ֥ר זַרְעוֹ־ב֖וֹ לְמִינֵ֑הוּ וַיַּ֥רְא אֱלֹהִ֖ים כִּי־טֽוֹב׃
+13 וַֽיְהִי־עֶ֥רֶב וַֽיְהִי־בֹ֖קֶר י֥וֹם שְׁלִישִֽׁי׃ פ
+14 וַיֹּ֣אמֶר אֱלֹהִ֗ים יְהִ֤י מְאֹרֹת֙ בִּרְקִ֣יעַ הַשָּׁמַ֔יִם לְהַבְדִּ֕יל בֵּ֥ין הַיּ֖וֹם וּבֵ֣ין הַלָּ֑יְלָה וְהָי֤וּ לְאֹתֹת֙ וּלְמ֣וֹעֲדִ֔ים וּלְיָמִ֖ים וְשָׁנִֽים׃
+15 וְהָי֤וּ לִמְאוֹרֹת֙ בִּרְקִ֣יעַ הַשָּׁמַ֔יִם לְהָאִ֖יר עַל־הָאָ֑רֶץ וַֽיְהִי־כֵֽן׃
+16 וַיַּ֣עַשׂ אֱלֹהִ֔ים אֶת־שְׁנֵ֥י הַמְּאֹרֹ֖ת הַגְּדֹלִ֑ים אֶת־הַמָּא֤וֹר הַגָּדֹל֙ לְמֶמְשֶׁ֣לֶת הַיּ֔וֹם וְאֶת־הַמָּא֤וֹר הַקָּטֹן֙ לְמֶמְשֶׁ֣לֶת הַלַּ֔יְלָה וְאֵ֖ת הַכּוֹכָבִֽים׃
+17 וַיִּתֵּ֥ן אֹתָ֛ם אֱלֹהִ֖ים בִּרְקִ֣יעַ הַשָּׁמָ֑יִם לְהָאִ֖יר עַל־הָאָֽרֶץ׃
+18 וְלִמְשֹׁל֙ בַּיּ֣וֹם וּבַלַּ֔יְלָה וּֽלֲהַבְדִּ֔יל בֵּ֥ין הָא֖וֹר וּבֵ֣ין הַחֹ֑שֶׁךְ וַיַּ֥רְא אֱלֹהִ֖ים כִּי־טֽוֹב׃
+19 וַֽיְהִי־עֶ֥רֶב וַֽיְהִי־בֹ֖קֶר י֥וֹם רְבִיעִֽי׃ פ
+20 וַיֹּ֣אמֶר אֱלֹהִ֔ים יִשְׁרְצ֣וּ הַמַּ֔יִם שֶׁ֖רֶץ נֶ֣פֶשׁ חַיָּ֑ה וְעוֹף֙ יְעוֹפֵ֣ף עַל־הָאָ֔רֶץ עַל־פְּנֵ֖י רְקִ֥יעַ הַשָּׁמָֽיִם׃
+21 וַיִּבְרָ֣א אֱלֹהִ֔ים אֶת־הַתַּנִּינִ֖ם הַגְּדֹלִ֑ים וְאֵ֣ת כָּל־נֶ֣פֶשׁ הַֽחַיָּ֣ה ׀ הָֽרֹמֶ֡שֶׂת אֲשֶׁר֩ שָׁרְצ֨וּ הַמַּ֜יִם לְמִֽינֵהֶ֗ם וְאֵ֨ת כָּל־ע֤וֹף כָּנָף֙ לְמִינֵ֔הוּ וַיַּ֥רְא אֱלֹהִ֖ים כִּי־טֽוֹב׃
+22 וַיְבָ֧רֶךְ אֹתָ֛ם אֱלֹהִ֖ים לֵאמֹ֑ר פְּר֣וּ וּרְב֗וּ וּמִלְא֤וּ אֶת־הַמַּ֨יִם֙ בַּיַּמִּ֔ים וְהָע֖וֹף יִ֥רֶב בָּאָֽרֶץ׃
+23 וַֽיְהִי־עֶ֥רֶב וַֽיְהִי־בֹ֖קֶר י֥וֹם חֲמִישִֽׁי׃ פ
+24 וַיֹּ֣אמֶר אֱלֹהִ֗ים תּוֹצֵ֨א הָאָ֜רֶץ נֶ֤פֶשׁ חַיָּה֙ לְמִינָ֔הּ בְּהֵמָ֥ה וָרֶ֛מֶשׂ וְחַֽיְתוֹ־אֶ֖רֶץ לְמִינָ֑הּ וַֽיְהִי־כֵֽן׃
+25 וַיַּ֣עַשׂ אֱלֹהִים֩ אֶת־חַיַּ֨ת הָאָ֜רֶץ לְמִינָ֗הּ וְאֶת־הַבְּהֵמָה֙ לְמִינָ֔הּ וְאֵ֛ת כָּל־רֶ֥מֶשׂ הָֽאֲדָמָ֖ה לְמִינֵ֑הוּ וַיַּ֥רְא אֱלֹהִ֖ים כִּי־טֽוֹב׃
+26 וַיֹּ֣אמֶר אֱלֹהִ֔ים נַֽעֲשֶׂ֥ה אָדָ֛ם בְּצַלְמֵ֖נוּ כִּדְמוּתֵ֑נוּ וְיִרְדּוּ֩ בִדְגַ֨ת הַיָּ֜ם וּבְע֣וֹף הַשָּׁמַ֗יִם וּבַבְּהֵמָה֙ וּבְכָל־הָאָ֔רֶץ וּבְכָל־הָרֶ֖מֶשׂ הָֽרֹמֵ֥שׂ עַל־הָאָֽרֶץ׃
+27 וַיִּבְרָ֨א אֱלֹהִ֤ים ׀ אֶת־הָֽאָדָם֙ בְּצַלְמ֔וֹ בְּצֶ֥לֶם אֱלֹהִ֖ים בָּרָ֣א אֹת֑וֹ זָכָ֥ר וּנְקֵבָ֖ה בָּרָ֥א אֹתָֽם׃
+28 וַיְבָ֣רֶךְ אֹתָם֮ אֱלֹהִים֒ וַיֹּ֨אמֶר לָהֶ֜ם אֱלֹהִ֗ים פְּר֥וּ וּרְב֛וּ וּמִלְא֥וּ אֶת־הָאָ֖רֶץ וְכִבְשֻׁ֑הָ וּרְד֞וּ בִּדְגַ֤ת הַיָּם֙ וּבְע֣וֹף הַשָּׁמַ֔יִם וּבְכָל־חַיָּ֖ה הָֽרֹמֶ֥שֶׂת עַל־הָאָֽרֶץ׃
+29 וַיֹּ֣אמֶר אֱלֹהִ֗ים הִנֵּה֩ נָתַ֨תִּי לָכֶ֜ם אֶת־כָּל־עֵ֣שֶׂב ׀ זֹרֵ֣עַ זֶ֗רַע אֲשֶׁר֙ עַל־פְּנֵ֣י כָל־הָאָ֔רֶץ וְאֶת־כָּל־הָעֵ֛ץ אֲשֶׁר־בּ֥וֹ פְרִי־עֵ֖ץ זֹרֵ֣עַ זָ֑רַע לָכֶ֥ם יִֽהְיֶ֖ה לְאָכְלָֽה׃
+30 וּֽלְכָל־חַיַּ֣ת הָ֠אָרֶץ וּלְכָל־ע֨וֹף הַשָּׁמַ֜יִם וּלְכֹ֣ל ׀ רוֹמֵ֣שׂ עַל־הָאָ֗רֶץ אֲשֶׁר־בּוֹ֙ נֶ֣פֶשׁ חַיָּ֔ה אֶת־כָּל־יֶ֥רֶק עֵ֖שֶׂב לְאָכְלָ֑ה וַֽיְהִי־כֵֽן׃
+31 וַיַּ֤רְא אֱלֹהִים֙ אֶת־כָּל־אֲשֶׁ֣ר עָשָׂ֔ה וְהִנֵּה־ט֖וֹב מְאֹ֑ד וַֽיְהִי־עֶ֥רֶב וַֽיְהִי־בֹ֖קֶר י֥וֹם הַשִּׁשִּֽׁי׃ פ
+2:4 אֵ֣לֶּה תוֹלְד֧וֹת הַשָּׁמַ֛יִם וְהָאָ֖רֶץ בְּהִבָּֽרְאָ֑ם בְּי֗וֹם עֲשׂ֛וֹת יְהוָ֥ה אֱלֹהִ֖ים אֶ֥רֶץ וְשָׁמָֽיִם׃
+6:8 וְנֹ֕חַ מָ֥צָא חֵ֖ן בְּעֵינֵ֥י יְהוָֽה׃פ
+"#;
+
+    const EXPECTED_GEN_1_RESULT_WORDS: &[&str] = &[
+        "Chapter", "1",
+        "1", "bərēʼshit", "bārāʼ", "ʼₑlohim", "ʼēt", "hashshāmayim", "vəʼēt", "hāʼāreʦ.",
+        "2", "vəhāʼāreʦ", "hāyətāh", "tohū", "vāⱱohū", "vəḩoshek", "ˊal-pənēy", "təhōm", "vərūaḩ", "ʼₑlohim", "məraḩefet", "ˊal-pənēy", "hammāyim.",
+        "3", "vayyoʼmer", "ʼₑlohim", "yəhiy", "ʼōr", "vayhī-ʼōr.",
+        "4", "vayyarʼ", "ʼₑlohim", "ʼet-hāʼōr", "kī-ţōⱱ", "vayyaⱱdēl", "ʼₑlohim", "bēyn", "hāʼōr", "ūⱱēyn", "haḩoshek.",
+        "5", "vayyiqrāʼ", "ʼₑlohim", "lāʼōr", "yōm", "vəlaḩoshek", "qārāʼ", "lāyəlāh", "vayhī-ˊereⱱ", "vayhī-ⱱoqer", "yōm", "ʼeḩād.", "f",
+
+        "6", "vayyoʼmer", "ʼₑlohim", "yəhiy", "rāqiyˊa", "bətōk", "hammāyim", "vīhiy", "maⱱdil", "bēyn", "mayim", "lāmāyim.",
+        "7", "vayyaˊas", "ʼₑlohīm", "ʼet-hārāqīˊa", "vayyaⱱdēl", "bēyn", "hammayim", "ʼₐsher", "mittaḩat", "lārāqiyˊa", "ūⱱēyn", "hammayim", "ʼₐsher", "mēˊal", "lārāqiyˊa", "vayhī-kēn.",
+        "8", "vayyiqrāʼ", "ʼₑlohim", "lārāqiyˊa", "shāmāyim", "vayhī-ˊereⱱ", "vayhī-ⱱoqer", "yōm", "shēniy.", "f",
+
+        "9", "vayyoʼmer", "ʼₑlohim", "yiqqāvū", "hammayim", "mittaḩat", "hashshāmayim", "ʼel-māqōm", "ʼeḩād", "vətērāʼeh", "hayyabāshāh", "vayhī-kēn.",
+        "10", "vayyiqrāʼ", "ʼₑlohim", "layyabāshāh", "ʼereʦ", "ūləmiqvēh", "hammayim", "qārāʼ", "yammim", "vayyarʼ", "ʼₑlohim", "kī-ţōⱱ.",
+        "11", "vayyoʼmer", "ʼₑlohim", "tadshēʼ", "hāʼāreʦ", "desheʼ", "ˊēseⱱ", "mazriyˊa", "zeraˊ", "ˊēʦ", "pəriy", "ˊoseh", "pərī", "ləmīnō", "ʼₐsher", "zarˊō-ⱱō", "ˊal-hāʼāreʦ", "vayhī-kēn.",
+        "12", "vattōʦēʼ", "hāʼāreʦ", "desheʼ", "ˊēseⱱ", "mazriyˊa", "zeraˊ", "ləmīnēhū", "vəˊēʦ", "ˊoseh-pəriy", "", "ʼₐsher", "zarˊō-ⱱō", "ləmīnēhū", "vayyarʼ", "ʼₑlohim", "kī-ţōⱱ.",
+        "13", "vayhī-ˊereⱱ", "vayhī-ⱱoqer", "yōm", "shəlīshiy.", "f",
+
+        "14", "vayyoʼmer", "ʼₑlohim", "yəhiy", "məʼorot", "birqiyˊa", "hashshāmayim", "ləhaⱱdil", "bēyn", "hayyōm", "ūⱱēyn", "hallāyəlāh", "vəhāyū", "ləʼotot", "ūləmōˊₐdim", "ūləyāmim", "vəshānim.",
+        "15", "vəhāyū", "limʼōrot", "birqiyˊa", "hashshāmayim", "ləhāʼir", "ˊal-hāʼāreʦ", "vayhī-kēn.",
+        "16", "vayyaˊas", "ʼₑlohim", "ʼet-shənēy", "hamməʼorot", "haggədolim", "ʼet-hammāʼōr", "haggādol", "ləmemshelet", "hayyōm",
+                "vəʼet-hammāʼōr", "haqqāţon", "ləmemshelet", "hallaylāh", "vəʼēt", "hakkōkāⱱim.",
+        "17", "vayyittēn", "ʼotām", "ʼₑlohim", "birqiyˊa", "hashshāmāyim", "ləhāʼir", "ˊal-hāʼāreʦ.",
+        "18", "vəlimshol", "bayyōm", "ūⱱallaylāh", "ūlₐhaⱱdil", "bēyn", "hāʼōr", "ūⱱēyn", "haḩoshek", "vayyarʼ", "ʼₑlohim", "kī-ţōⱱ.",
+        "19", "vayhī-ˊereⱱ", "vayhī-ⱱoqer", "yōm", "rəⱱīˊiy.", "f",
+
+        "20", "vayyoʼmer", "ʼₑlohim", "yishrəʦū", "hammayim", "shereʦ", "nefesh", "ḩayyāh", "vəˊōf", "yəˊōfēf", "ˊal-hāʼāreʦ", "ˊal-pənēy", "rəqiyˊa", "hashshāmāyim.",
+        "21", "vayyiⱱrāʼ", "ʼₑlohim", "ʼet-hattannīnim", "haggədolim",
+                "vəʼēt", "kāl-nefesh", "haḩayyāh", "hāromeset", "ʼₐsher", "shārəʦū", "hammayim", "ləminēhem", "vəʼēt", "kāl-ˊōf", "kānāf", "ləmīnēhū", "vayyarʼ", "ʼₑlohim", "kī-ţōⱱ.",
+        "22", "vayⱱārek", "ʼotām", "ʼₑlohim", "lēʼmor", "pərū", "ūrəⱱū", "ūmilʼū", "ʼet-hammayim", "bayyammim", "vəhāˊōf", "yireⱱ", "bāʼāreʦ.",
+        "23", "vayhī-ˊereⱱ", "vayhī-ⱱoqer", "yōm", "ḩₐmīshiy.", "f",
+
+        "24", "vayyoʼmer", "ʼₑlohim", "tōʦēʼ", "hāʼāreʦ", "nefesh", "ḩayyāh", "ləmīnāh", "bəhēmāh", "vāremes", "vəḩaytō-ʼereʦ", "ləmīnāh", "vayhī-kēn.",
+        "25", "vayyaˊas", "ʼₑlohīm", "ʼet-ḩayyat", "hāʼāreʦ", "ləmīnāh", "vəʼet-habhēmāh", "ləmīnāh", "vəʼēt", "kāl-remes", "hāʼₐdāmāh", "ləmīnēhū", "vayyarʼ", "ʼₑlohim", "kī-ţōⱱ.",
+        "26", "vayyoʼmer", "ʼₑlohim", "naˊₐseh", "ʼādām", "bəʦalmēnū", "kidmūtēnū", "vəyirdū", "ⱱidgat", "hayyām", "ūⱱəˊōf", "hashshāmayim", "ūⱱabhēmāh", "ūⱱəkāl-hāʼāreʦ", "ūⱱəkāl-hāremes", "hāromēs", "ˊal-hāʼāreʦ.",
+        "27", "vayyiⱱrāʼ", "ʼₑlohim", "ʼet-hāʼādām", "bəʦalmō", "bəʦelem", "ʼₑlohim", "bārāʼ", "ʼotō", "zākār", "ūnəqēⱱāh", "bārāʼ", "ʼotām.",
+        "28", "vayⱱārek", "ʼotām", "ʼₑlohīm", "vayyoʼmer", "lāhem", "ʼₑlohim", "pərū", "ūrəⱱū", "ūmilʼū", "ʼet-hāʼāreʦ",
+                "vəkiⱱshuhā", "ūrədū", "bidgat", "hayyām", "ūⱱəˊōf", "hashshāmayim", "ūⱱəkāl-ḩayyāh", "hāromeset", "ˊal-hāʼāreʦ.",
+        "29", "vayyoʼmer", "ʼₑlohim", "hinnēh", "nātattī", "lākem", "ʼet-kāl-ˊēseⱱ", "zorēˊa", "zeraˊ", "ʼₐsher", "ˊal-pənēy", "kāl-hāʼāreʦ",
+                "vəʼet-kāl-hāˊēʦ", "ʼₐsher-bō", "fərī-ˊēʦ", "zorēˊa", "zāraˊ", "lākem", "yihyeh", "ləʼākəlāh.",
+        "30", "ūləkāl-ḩayyat", "hāʼāreʦ", "ūləkāl-ˊōf", "hashshāmayim", "ūləkol", "rōmēs", "ˊal-hāʼāreʦ", "ʼₐsher-bō", "nefesh", "ḩayyāh", "ʼet-kāl-yereq", "ˊēseⱱ", "ləʼākəlāh", "vayhī-kēn.",
+        "31", "vayyarʼ", "ʼₑlohīm", "ʼet-kāl-ʼₐsher", "ˊāsāh", "vəhinnēh-ţōⱱ", "məʼod", "vayhī-ˊereⱱ", "vayhī-ⱱoqer", "yōm", "hashshishshiy.", "f",
+        "2:4", "ʼēlleh", "tōlədōt", "hashshāmayim", "vəhāʼāreʦ", "bəhibārəʼām", "bəyōm", "ˊₐsōt", "yəhvāh", "ʼₑlohim", "ʼereʦ", "vəshāmāyim.",
+        "6:8", "vənoaḩ", "māʦāʼ", "ḩēn", "bəˊēynēy", "yəhvāh.◊"
+        ];
+
+    const MATTHEW_1: &str = r#"\v 1 ¶Βίβλος γενέσεως Ἰησοῦ Χριστοῦ, υἱοῦ Δαυὶδ, υἱοῦ Ἀβραάμ:
+\v 2 ¶Ἀβραὰμ ἐγέννησεν τὸν Ἰσαάκ, Ἰσαὰκ δὲ ἐγέννησεν τὸν Ἰακώβ, Ἰακὼβ δὲ ἐγέννησεν τὸν Ἰούδαν καὶ τοὺς ἀδελφοὺς αὐτοῦ,
+\v 3 Ἰούδας δὲ ἐγέννησεν τὸν Φαρὲς καὶ τὸν Ζάρα ἐκ τῆς Θαμάρ, Φαρὲς δὲ ἐγέννησεν τὸν Ἑσρώμ, Ἑσρὼμ δὲ ἐγέννησεν τὸν Ἀράμ,
+\v 4 Ἀρὰμ δὲ ἐγέννησεν τὸν Ἀμιναδάβ, Ἀμιναδὰβ δὲ ἐγέννησεν τὸν Ναασσών, Ναασσὼν δὲ ἐγέννησεν τὸν Σαλμών,
+\v 5 Σαλμὼν δὲ ἐγέννησεν τὸν Βόες ἐκ τῆς Ῥαχάβ, Βόες δὲ ἐγέννησεν τὸν Ἰωβὴδ ἐκ τῆς Ῥούθ, Ἰωβὴδ δὲ ἐγέννησεν τὸν Ἰεσσαί,
+\v 6 Ἰεσσαὶ δὲ ἐγέννησεν τὸν Δαυὶδ τὸν βασιλέα. ¶Δαυὶδ δὲ ἐγέννησεν τὸν Σολομῶνα ἐκ τῆς τοῦ Οὐρίου,
+\v 7 Σολομὼν δὲ ἐγέννησεν τὸν Ῥοβοάμ, Ῥοβοὰμ δὲ ἐγέννησεν τὸν Ἀβιά, Ἀβιὰ δὲ ἐγέννησεν τὸν Ἀσάφ,
+\v 8 Ἀσὰφ δὲ ἐγέννησεν τὸν Ἰωσαφάτ, Ἰωσαφὰτ δὲ ἐγέννησεν τὸν Ἰωράμ, Ἰωρὰμ δὲ ἐγέννησεν τὸν Ὀζίαν,
+\v 9 Ὀζίας δὲ ἐγέννησεν τὸν Ἰωαθάμ, Ἰωαθὰμ δὲ ἐγέννησεν τὸν Ἀχάζ, Ἀχὰζ δὲ ἐγέννησεν τὸν Ἑζεκίαν,
+\v 10 Ἑζεκίας δὲ ἐγέννησεν τὸν Μανασσῆ, Μανασσῆ δὲ ἐγέννησεν τὸν Ἀμώς, Ἀμὼς δὲ ἐγέννησεν τὸν Ἰωσίαν,
+\v 11 Ἰωσίας δὲ ἐγέννησεν τὸν Ἰεχονίαν καὶ τοὺς ἀδελφοὺς αὐτοῦ ἐπὶ τῆς μετοικεσίας Βαβυλῶνος.
+\v 12 ¶Μετὰ δὲ τὴν μετοικεσίαν Βαβυλῶνος, Ἰεχονίας ἐγέννησεν τὸν Σαλαθιήλ, Σαλαθιὴλ δὲ ἐγέννησεν τὸν Ζοροβαβέλ,
+\v 13 Ζοροβαβὲλ δὲ ἐγέννησεν τὸν Ἀβιούδ, Ἀβιοὺδ δὲ ἐγέννησεν τὸν Ἐλιακείμ, Ἐλιακεὶμ δὲ ἐγέννησεν τὸν Ἀζώρ,
+\v 14 Ἀζὼρ δὲ ἐγέννησεν τὸν Σαδώκ, Σαδὼκ δὲ ἐγέννησεν τὸν Ἀχείμ, Ἀχεὶμ δὲ ἐγέννησεν τὸν Ἐλιούδ,
+\v 15 Ἐλιοὺδ δὲ ἐγέννησεν τὸν Ἐλεάζαρ, Ἐλεάζαρ δὲ ἐγέννησεν τὸν Ματθάν, Ματθὰν δὲ ἐγέννησεν τὸν Ἰακώβ,
+\v 16 Ἰακὼβ δὲ ἐγέννησεν τὸν Ἰωσὴφ τὸν ἄνδρα Μαρίας, ἐξ ἧς ἐγεννήθη Ἰησοῦς, ὁ λεγόμενος Χριστός.
+\v 17 ¶Πᾶσαι οὖν αἱ γενεαὶ ἀπὸ Ἀβραὰμ ἕως Δαυὶδ γενεαὶ δεκατέσσαρες, καὶ ἀπὸ Δαυὶδ ἕως τῆς μετοικεσίας Βαβυλῶνος γενεαὶ δεκατέσσαρες, καὶ ἀπὸ τῆς μετοικεσίας Βαβυλῶνος ἕως τοῦ Χριστοῦ γενεαὶ δεκατέσσαρες.
+\v 18 ¶Τοῦ δὲ Ἰησοῦ Χριστοῦ ἡ γένεσις οὕτως ἦν: μνηστευθείσης τῆς μητρὸς αὐτοῦ Μαρίας τῷ Ἰωσήφ, πρὶν ἢ συνελθεῖν αὐτοὺς, εὑρέθη ἐν γαστρὶ ἔχουσα ἐκ Πνεύματος Ἁγίου.
+\v 19 Ἰωσὴφ δὲ ὁ ἀνὴρ αὐτῆς, δίκαιος ὢν καὶ μὴ θέλων αὐτὴν δειγματίσαι, ἐβουλήθη λάθρᾳ ἀπολῦσαι αὐτήν.
+\v 20 Ταῦτα δὲ αὐτοῦ ἐνθυμηθέντος, ἰδοὺ, ἄγγελος Κυρίου κατʼ ὄναρ ἐφάνη αὐτῷ λέγων, “Ἰωσὴφ, υἱὸς Δαυίδ, μὴ φοβηθῇς παραλαβεῖν Μαριὰμ τὴν γυναῖκά σου, τὸ γὰρ ἐν αὐτῇ γεννηθὲν ἐκ Πνεύματός ἐστιν Ἁγίου.
+\v 21 Τέξεται δὲ υἱὸν, καὶ καλέσεις τὸ ὄνομα αὐτοῦ Ἰησοῦν, αὐτὸς γὰρ σώσει τὸν λαὸν αὐτοῦ ἀπὸ τῶν ἁμαρτιῶν αὐτῶν.”
+\v 22 Τοῦτο δὲ ὅλον γέγονεν, ἵνα πληρωθῇ τὸ ῥηθὲν ὑπὸ Κυρίου διὰ τοῦ προφήτου λέγοντος,
+\v 23 “Ἰδοὺ, ἡ παρθένος ἐν γαστρὶ ἕξει καὶ τέξεται υἱόν, καὶ καλέσουσιν τὸ ὄνομα αὐτοῦ Ἐμμανουήλ”, ὅ ἐστιν μεθερμηνευόμενον, “Μεθʼ ἡμῶν ὁ Θεός”.
+\v 24 Ἐγερθεὶς δὲ ὁ Ἰωσὴφ ἀπὸ τοῦ ὕπνου, ἐποίησεν ὡς προσέταξεν αὐτῷ ὁ ἄγγελος Κυρίου, καὶ παρέλαβεν τὴν γυναῖκα αὐτοῦ,
+\v 25 καὶ οὐκ ἐγίνωσκεν αὐτὴν ἕως οὗ ἔτεκεν υἱόν· καὶ ἐκάλεσεν τὸ ὄνομα αὐτοῦ, Ἰησοῦν.
+"#;
+
+    #[test]
+    fn test_full_genesis_1() {
+        init_tables();
+        let result = transliterate_hebrew(GENESIS_1, false);
+        let result_words: Vec<String> = result.trim_end().replace('\n', " ").replace("  ", " ").split(' ').filter(|s| !s.is_empty()).map(|s| s.to_string()).collect();
+        
+        let expected: Vec<String> = EXPECTED_GEN_1_RESULT_WORDS.iter().filter(|s| !s.is_empty()).map(|s| s.to_string()).collect();
+
+        for (n, (res, exp)) in result_words.iter().zip(expected.iter()).enumerate() {
+            assert_eq!(res, exp, "Word {} differs: {:?} vs {:?}", n + 1, res, exp);
+        }
+        assert_eq!(result_words.len(), expected.len());
+    }
+
+    #[test]
+    fn test_full_matthew_1() {
+        init_tables();
+        let result = transliterate_greek(MATTHEW_1);
+        assert!(result.contains("Biblos"));
+        assert!(result.contains("geneseōs"));
+        assert!(result.contains("Yaʸsou"));
+        assert!(result.contains("Dawid"));
+    }
+}

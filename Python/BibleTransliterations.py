@@ -1,11 +1,11 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run
 # -*- coding: utf-8 -*-
 #
 # BibleTransliterations.py
 #
 # Module handling BibleTransliterations
 #
-# Copyright (C) 2022-2024 Robert Hunt
+# Copyright (C) 2022-2026 Robert Hunt
 # Author: Robert Hunt <Freely.Given.org+BOS@gmail.com>
 # License: See gpl-3.0.txt
 #
@@ -27,6 +27,8 @@ Module handling BibleTransliterations.
 
 CHANGELOG:
     2023-03-23 Not sure why unicodedata.name(LF) fails, but catch it now
+    2025-06-27 Make less verbose
+    2026-01-13 Fix 'אֱלוֹהַּ' ʼₑlōha should be ʼₑlōah
 """
 from gettext import gettext as _
 from pathlib import Path
@@ -39,10 +41,10 @@ from BibleOrgSysGlobals import fnPrint, vPrint, dPrint
 
 
 
-LAST_MODIFIED_DATE = '2024-09-05' # by RJH
+LAST_MODIFIED_DATE = '2026-02-10' # by RJH
 SHORT_PROGRAM_NAME = "BibleTransliterations"
 PROGRAM_NAME = "Bible Transliterations handler"
-PROGRAM_VERSION = '0.35'
+PROGRAM_VERSION = '0.39'
 PROGRAM_NAME_VERSION = f'{SHORT_PROGRAM_NAME} v{PROGRAM_VERSION}'
 
 DEBUGGING_THIS_MODULE = False
@@ -60,7 +62,7 @@ def load_transliteration_table(which) -> bool:
 
     # Remove BOM
     if tsv_lines[0].startswith("\ufeff"):
-        vPrint( 'Quiet', DEBUGGING_THIS_MODULE, f"  Removing Byte Order Marker (BOM) from start of {which} TSV file…")
+        vPrint('Quiet', DEBUGGING_THIS_MODULE, f"  Removing Byte Order Marker (BOM) from start of {which} TSV file…")
         tsv_lines[0] = tsv_lines[0][1:]
 
     # Get the headers before we start
@@ -93,7 +95,7 @@ def load_transliteration_table(which) -> bool:
     if which=='Hebrew':
         destination = hebrew_tsv_rows = sorted(tsv_rows, key=lambda k:-len(k[source_language_code]))
     else: destination = greek_tsv_rows = sorted(tsv_rows, key=lambda k:-len(k[source_language_code]))
-    vPrint('Quiet', DEBUGGING_THIS_MODULE, f"  Loaded {len(destination):,} '{which}' transliteration data rows.")
+    vPrint('Normal', DEBUGGING_THIS_MODULE, f"  Loaded {len(destination):,} '{which}' transliteration data rows.")
     return True
 # end of load_transliteration_table()
 
@@ -220,16 +222,25 @@ def transliterate_Hebrew(input:str, capitaliseHebrew=False) -> str:
 
         # Handle final ḩa after we removed the line: חַ	HetPatah	aḩ	# Not ḩa, e.g., in 'נֹ֔חַ' (Noaḩ) IS THIS TOO WIDE, i.e., should only be at WORD END?
         if cleanedTransliteratedHebrewWord.endswith( 'ḩa' ): # Swap the final two letters
-            dPrint('Info', DEBUGGING_THIS_MODULE, f"Fixing final two letters: {cleanedTransliteratedHebrewWord=}")
+            dPrint('Info', DEBUGGING_THIS_MODULE, f"      Fixing Het with patah final two letters: {cleanedTransliteratedHebrewWord=} from {input=}")
             transliteratedHebrewInput = transliteratedHebrewInput.replace( f'{cleanedTransliteratedHebrewWord}', f'{cleanedTransliteratedHebrewWord[:-2]}aḩ' ) \
                                         if transliteratedHebrewInput.endswith( cleanedTransliteratedHebrewWord ) \
                                     else transliteratedHebrewInput.replace( f'{cleanedTransliteratedHebrewWord} ', f'{cleanedTransliteratedHebrewWord[:-2]}aḩ ', 1 ) \
                                                                     .replace( f'{cleanedTransliteratedHebrewWord}<', f'{cleanedTransliteratedHebrewWord[:-2]}aḩ<', 1 )
+        # Handle final ḩa after we removed the line: חַ	HePatah	ah	# Not ha, e.g., in 'בְּרִיעָהַ' (Beriah) 'אֱלוֹהַּ' (Eloah) IS THIS TOO WIDE, i.e., should only be at WORD END?
+        elif len(cleanedTransliteratedHebrewWord)>2 and cleanedTransliteratedHebrewWord.endswith( 'ha' ): # Swap the final two letters
+            dPrint('Info', DEBUGGING_THIS_MODULE, f"      Fixing He with patah final two letters: {cleanedTransliteratedHebrewWord=} from {input=}")
+            transliteratedHebrewInput = transliteratedHebrewInput.replace( f'{cleanedTransliteratedHebrewWord}', f'{cleanedTransliteratedHebrewWord[:-2]}ah' ) \
+                                        if transliteratedHebrewInput.endswith( cleanedTransliteratedHebrewWord ) \
+                                    else transliteratedHebrewInput.replace( f'{cleanedTransliteratedHebrewWord} ', f'{cleanedTransliteratedHebrewWord[:-2]}ah ', 1 ) \
+                                                                    .replace( f'{cleanedTransliteratedHebrewWord}<', f'{cleanedTransliteratedHebrewWord[:-2]}ah<', 1 )
     assert not transliteratedHebrewInput.startswith( 'bb' ) and ' bb' not in transliteratedHebrewInput and '>bb' not in transliteratedHebrewInput, f"{transliteratedHebrewInput=} from {hebrewInput=}"
     assert not transliteratedHebrewInput.startswith( 'dd' ) and ' dd' not in transliteratedHebrewInput and '>dd' not in transliteratedHebrewInput, f"{transliteratedHebrewInput=} from {hebrewInput=}"
     assert not transliteratedHebrewInput.startswith( 'kk' ) and ' kk' not in transliteratedHebrewInput and '>kk' not in transliteratedHebrewInput, f"{transliteratedHebrewInput=} from {hebrewInput=}"
     assert not transliteratedHebrewInput.startswith( 'tt' ) and ' tt' not in transliteratedHebrewInput and '>tt' not in transliteratedHebrewInput, f"{transliteratedHebrewInput=} from {hebrewInput=}"
     assert 'ḩa ' not in transliteratedHebrewInput and 'ḩa.' not in transliteratedHebrewInput and 'ḩa<' not in transliteratedHebrewInput, f"{transliteratedHebrewInput=} from {hebrewInput=}"
+    if '"ha.' not in transliteratedHebrewInput:
+        assert 'ha ' not in transliteratedHebrewInput and 'ha.' not in transliteratedHebrewInput and 'ha<' not in transliteratedHebrewInput, f"{transliteratedHebrewInput=} from {hebrewInput=}"
 
     # Handle schwa
     # We have to redo the loop because otherwise we get fooled by words that have already changed
@@ -302,45 +313,35 @@ def transliterate_Hebrew(input:str, capitaliseHebrew=False) -> str:
             logging.critical(f"Have some Hebrew left-overs ({unicodedata.name(thChar)}) in '{transliteratedHebrewInput}' FROM '{input}'")
             stop_so_we_can_fix_the_Hebrew_table
 
-    # if 1: # new code
+    # assert not ('mefib' in transliteratedHebrewInput or 'Mefib' in transliteratedHebrewInput or 'mephib' in transliteratedHebrewInput or 'Mephib' in transliteratedHebrewInput), f"Mefib {input=} {hebrewInput=} {transliteratedHebrewInput=}"
     if not capitaliseHebrew:
         return f'{input[:first_Hebrew_index]}{transliteratedHebrewInput}{input[past_Hebrew_index:]}'
 
     # Ok, we have to title case it -- presumably the entire string, not each individual word
     if transliteratedHebrewInput[0] == 'ʦ': # This digraph doesn't have an UPPERCASE form in Unicode
-        capitalisedHebrew = f'Ts{transliteratedHebrewInput[1:]}'
+        capitalisedTransliteratedHebrew = f'Ts{transliteratedHebrewInput[1:]}'
     elif transliteratedHebrewInput[0] == 'ₐ': # This subscript character doesn't have an UPPERCASE form in Unicode
-        capitalisedHebrew = f'A{transliteratedHebrewInput[1:]}'
+        capitalisedTransliteratedHebrew = f'A{transliteratedHebrewInput[1:]}'
     elif transliteratedHebrewInput[0] == 'ₑ': # This subscript character doesn't have an UPPERCASE form in Unicode
-        capitalisedHebrew = f'E{transliteratedHebrewInput[1:]}'
+        capitalisedTransliteratedHebrew = f'E{transliteratedHebrewInput[1:]}'
     elif transliteratedHebrewInput[0] == 'ⱱ': # This hooked character doesn't have an UPPERCASE form in Unicode
-        capitalisedHebrew = f'V{transliteratedHebrewInput[1:]}'
+        capitalisedTransliteratedHebrew = f'V{transliteratedHebrewInput[1:]}'
     elif transliteratedHebrewInput[0] in 'ʼˊ':
         if transliteratedHebrewInput[1] == 'ʦ': # This digraph doesn't have an UPPERCASE form in Unicode
-            capitalisedHebrew = f'{transliteratedHebrewInput[0]}Ts{transliteratedHebrewInput[2:]}'
+            capitalisedTransliteratedHebrew = f'{transliteratedHebrewInput[0]}Ts{transliteratedHebrewInput[2:]}'
         elif transliteratedHebrewInput[1] == 'ₐ': # This subscript character doesn't have an UPPERCASE form in Unicode
-            capitalisedHebrew = f'{transliteratedHebrewInput[0]}A{transliteratedHebrewInput[2:]}'
+            capitalisedTransliteratedHebrew = f'{transliteratedHebrewInput[0]}A{transliteratedHebrewInput[2:]}'
         elif transliteratedHebrewInput[1] == 'ₑ': # This subscript character doesn't have an UPPERCASE form in Unicode
-            capitalisedHebrew = f'{transliteratedHebrewInput[0]}E{transliteratedHebrewInput[2:]}'
+            capitalisedTransliteratedHebrew = f'{transliteratedHebrewInput[0]}E{transliteratedHebrewInput[2:]}'
         elif transliteratedHebrewInput[1] == 'ⱱ': # This hooked character doesn't have an UPPERCASE form in Unicode
-            capitalisedHebrew = f'{transliteratedHebrewInput[0]}V{transliteratedHebrewInput[2:]}'
+            capitalisedTransliteratedHebrew = f'{transliteratedHebrewInput[0]}V{transliteratedHebrewInput[2:]}'
         else:
-            capitalisedHebrew = f'{transliteratedHebrewInput[0]}{transliteratedHebrewInput[1].upper()}{transliteratedHebrewInput[2:]}' # Skip past either of the glottals and uppercase the next letter
+            capitalisedTransliteratedHebrew = f'{transliteratedHebrewInput[0]}{transliteratedHebrewInput[1].upper()}{transliteratedHebrewInput[2:]}' # Skip past either of the glottals and uppercase the next letter
     else: # The normal case
-        capitalisedHebrew = f'{transliteratedHebrewInput[0].upper()}{transliteratedHebrewInput[1:]}'
-    assert capitalisedHebrew != transliteratedHebrewInput, f'({len(hebrewInput)}) {hebrewInput=} ({len(transliteratedHebrewInput)}) {transliteratedHebrewInput=} ({len(capitalisedHebrew)}) {capitalisedHebrew=}'
-    return f'{input[:first_Hebrew_index]}{capitalisedHebrew}{input[past_Hebrew_index:]}'
-    # else: # old code
-    #     assembled_result = f'{input[:first_Hebrew_index]}{transliteratedHebrewInput}{input[past_Hebrew_index:]}'
-    #     if not capitaliseHebrew:
-    #         return assembled_result
-
-    #     # Ok, we have to title case it -- presumably the entire string
-    #     if assembled_result[first_Hebrew_index] == 'ʦ':
-    #         return assembled_result.replace( 'ʦ', 'Ts', 1 ) # This digraph doesn't have an UPPERCASE form
-
-    #     # print(f"Title-casing '{result}' '{result[first_Hebrew_index:first_Hebrew_index+2]}' to '{result[:first_Hebrew_index+2].title()}'")
-    #     return f'{assembled_result[:first_Hebrew_index]}{assembled_result[first_Hebrew_index:first_Hebrew_index+2].title()}{assembled_result[first_Hebrew_index+2:]}' # Title case, but don't want something like Rəḩavə'Ām
+        capitalisedTransliteratedHebrew = f'{transliteratedHebrewInput[0].upper()}{transliteratedHebrewInput[1:]}'
+    assert capitalisedTransliteratedHebrew != transliteratedHebrewInput, f'({len(hebrewInput)}) {hebrewInput=} ({len(transliteratedHebrewInput)}) {transliteratedHebrewInput=} ({len(capitalisedTransliteratedHebrew)}) {capitalisedTransliteratedHebrew=}'
+    # assert not ('mefib' in capitalisedTransliteratedHebrew or 'Mefib' in capitalisedTransliteratedHebrew or 'mephib' in capitalisedTransliteratedHebrew or 'Mephib' in capitalisedTransliteratedHebrew), f"Mefib {input=} {hebrewInput=} {transliteratedHebrewInput=} {capitalisedTransliteratedHebrew=}"
+    return f'{input[:first_Hebrew_index]}{capitalisedTransliteratedHebrew}{input[past_Hebrew_index:]}'
 # end of transliterate_Hebrew function
 
 

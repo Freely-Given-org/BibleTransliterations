@@ -1,136 +1,171 @@
-hbo	Meta	en	Comment
+hbo	Meta	en	optionalComment
 א	Alef	ʼ	# Modifier letter apostrophe U+02BC
 אּ	Alef	ʼ
 ב	Bet	ⱱ	# Different character from Vav
 בּ	Bet	b
-בְּ		bə	# Shva is (wrongly?) BEFORE dagesh
-בַּ		ba	# Patah is (wrongly?) BEFORE dagesh
-בָּ		bā	# Qamats is (wrongly?) BEFORE dagesh
-בֶּ		be	# Segol is (wrongly?) BEFORE dagesh
-בֵּ		bē	# Tsere is (wrongly?) BEFORE dagesh
-בִּ		bi	# Hiriq is (wrongly?) BEFORE dagesh
-בֹּ		bo	# Holam is (wrongly?) BEFORE dagesh
+בְּ		bə	# Shva is before dagesh -- ACTUALLY IT'S THE WWW UNICODE STANDARD ORDER !!!
+בַּ		ba	# Patah is before dagesh
+בָּ		bā	# Qamats is before dagesh
+בֶּ		be	# Segol is before dagesh
+בֵּ		bē	# Tsere is before dagesh
+בִּ		bi	# Hiriq is before dagesh
+בֹּ		bo	# Holam is before dagesh
+בֻּ		bu	# Qubuts is before dagesh
 ג	Gimel	g
 גּ	Gimel	gg
-גְּ		ggə	# Shva is (wrongly?) BEFORE dagesh
-גַּ		gga	# Patah is (wrongly?) BEFORE dagesh
-גָּ		ggā	# Qamats is (wrongly?) BEFORE dagesh
-גֶּ		gge	# Segol is (wrongly?) BEFORE dagesh
-גֵּ		ggē	# Tsere is (wrongly?) BEFORE dagesh
-גִּ		ggi	# Hiriq is (wrongly?) BEFORE dagesh
-גֹּ		ggo	# Holam is (wrongly?) BEFORE dagesh
-גֻּ		ggu	# Qubuts is (wrongly?) BEFORE dagesh
-גּשׁ		ggosh	# The shin dot acts as the holam
+גְּ		ggə	# Shva is before dagesh
+גַּ		gga	# Patah is before dagesh
+גָּ		ggā	# Qamats is before dagesh
+גֶּ		gge	# Segol is before dagesh
+גֵּ		ggē	# Tsere is before dagesh
+גִּ		ggi	# Hiriq is before dagesh
+גֹּ		ggo	# Holam is before dagesh
+גֻּ		ggu	# Qubuts is before dagesh
+גּשׁ		ggosh	# The shin dot also acts as the holam
 ד	Dalet	d
 דּ	Dalet	dd
-דְּ		ddə	# Shva is (wrongly?) BEFORE dagesh
-דַּ		dda	# Patah is (wrongly?) BEFORE dagesh
-דֲּ		dda	# Hataf Patah is (wrongly?) BEFORE dagesh
-דָּ		ddā	# Qamats is (wrongly?) BEFORE dagesh
-דֱּ		dde	# Hataf segol is (wrongly?) BEFORE dagesh
-דֵּ		ddē	# Tsere is (wrongly?) BEFORE dagesh
-דִּ		ddi	# Hiriq is (wrongly?) BEFORE dagesh
-דֹּ		ddo	# Holam is (wrongly?) BEFORE dagesh
+דְּ		ddə	# Shva is before dagesh
+דַּ		dda	# Patah is before dagesh
+דֲּ		dda	# Hataf Patah is before dagesh
+דָּ		ddā	# Qamats is before dagesh
+דֱּ		dde	# Hataf segol is before dagesh
+דֵּ		ddē	# Tsere is before dagesh
+דִּ		ddi	# Hiriq is before dagesh
+דֹּ		ddo	# Holam is before dagesh
 ה	He	h
 הּ	HeFinal	h
 ו	Vav	v
 וֹ		ō	# Vav with Holam
-וֺ		ō	# Vav with Holam Haser(=deficient)
+וֺ		vō	# Vav with Holam Haser(=consonant+vowel)
 וּ		ū
-וָּ		vvā	# Qamats is (wrongly?) BEFORE dagesh
+וָּ		vvā	# Qamats is before dagesh
+וִּ		vvi	# Hiriq is before dagesh
 וֺּ		vvō	# With dagesh then holam, it's a consonant
 ז	Zayin	z
 זּ	Zayin	zz
-זָּ		zzā	# Qamats is (wrongly?) BEFORE dagesh
-זִּ		zzi	# Hiriq is (wrongly?) BEFORE dagesh
+זָּ		zzā	# Qamats is before dagesh
+זֵּ		zzē	# Tsere is before dagesh
+זִּ		zzi	# Hiriq is before dagesh
 ח	Het	ḩ
 חּ	HetDagesh	ḩḩ
 ט	Tet	ţ
 טּ	Tet	ţţ
-טָּ		ţţā	# Qamats is (wrongly?) BEFORE dagesh
+טָּ		ţţā	# Qamats is before dagesh
+טִּ		ţţi	# Hiriq is before dagesh
 י	Yod	y
 יּ	Yod	yy
-יָּ		yyā	# Qamats is (wrongly?) BEFORE dagesh
-יֵּ		yyē	# Tsere is (wrongly?) BEFORE dagesh
+יָּ		yyā	# Qamats is before dagesh
+יֵּ		yyē	# Tsere is before dagesh
+יִּ		yyi	# Hiriq is before dagesh
 כ	Kaf	k
 כּ	Kaf	kk
-כְּ		kkə	# Shva is (wrongly?) BEFORE dagesh
-כַּ		kka	# Patah is (wrongly?) BEFORE dagesh
-כָּ		kkā	# Qamats is (wrongly?) BEFORE dagesh
-כִּ		kki	# Hiriq is (wrongly?) BEFORE dagesh
-כִּי		kkī	# Hiriq is (wrongly?) BEFORE dagesh BEFORE YOD
-כֹּ		kko	# Holam is (wrongly?) BEFORE dagesh
+כְּ		kkə	# Shva is before dagesh
+כַּ		kka	# Patah is before dagesh
+כָּ		kkā	# Qamats is before dagesh
+כֶּ		kke	# Segol is before dagesh
+כִּ		kki	# Hiriq is before dagesh
+כִּי		kkī	# Hiriq is before dagesh before YOD
+כִּיּ		kkīyy	# Hiriq is before dagesh before YOD before dagesh
+כִּיָּ		kkīyyā	# Hiriq is before dagesh before YOD qamats dagesh
+כֹּ		kko	# Holam is before dagesh
 ך	KafFinal	k
 ךּ	KafFinalDagesh	ⱪ	# Test k with hook rather than kk which looks bad at end of words
 ךְ	KafFinalShva	k
 ל	Lamed	l
 לּ	Lamed	ll
-לָּ		llā	# Qamats is (wrongly?) BEFORE dagesh
-לֵּ		llē	# Tsere is (wrongly?) BEFORE dagesh
-לִּ		lli	# Hiriq is (wrongly?) BEFORE dagesh
+לְּ		llə	# Shva is before dagesh
+לַּ		lla	# Patah is before dagesh
+לָּ		llā	# Qamats is before dagesh
+לֶּ		lle	# Segol is before dagesh
+לֵּ		llē	# Tsere is before dagesh
+לִּ		lli	# Hiriq is before dagesh
+לֻּ		llu	# Qubuts is before dagesh
 מ	Mem	m
 מּ	Mem	mm
-מָּ		mmā	# Qamats is (wrongly?) BEFORE dagesh
-מֶּ		mme	# Segol is (wrongly?) BEFORE dagesh
-מִּ		mmi	# Hiriq is (wrongly?) BEFORE dagesh
+מַּ		mma	# Patah is before dagesh
+מָּ		mmā	# Qamats is before dagesh
+מֶּ		mme	# Segol is before dagesh
+מֵּ		mmē	# Tsere is before dagesh
+מִּ		mmi	# Hiriq is before dagesh
+מֹּ		mmo	# Holam is before dagesh
 ם	MemFinal	m
 נ	Nun	n
 נּ	Nun	nn
-נָּ		nnā	# Qamats is (wrongly?) BEFORE dagesh
-נֶּ		nne	# Segol is (wrongly?) BEFORE dagesh
-נִּ		nni	# Hiriq is (wrongly?) BEFORE dagesh
-נֹּ		nno	# Holam is (wrongly?) BEFORE dagesh
+נְּ		nnə	# Shva is before dagesh
+נַּ		nna	# Patah is before dagesh
+נָּ		nnā	# Qamats is before dagesh
+נֶּ		nne	# Segol is before dagesh
+נִּ		nni	# Hiriq is before dagesh
+נֹּ		nno	# Holam is before dagesh
 ן	NunFinal	n
 ס	Samekh	ş
 סּ	Samekh	şş
-סָּ		şşā	# Qamats is (wrongly?) BEFORE dagesh
+סְּ		şşə	# Shva is before dagesh
+סָּ		şşā	# Qamats is before dagesh
+סִּ		şşi	# Hiriq is before dagesh
 ע	Ayin	ˊ	# Modifier letter accute accent U+02CA
+עשׁ		ˊosh	# The shin dot also acts as the holam
 פ	Pe	f
 פּ	Pe	p
-פַּ		ppa	# Patah is (wrongly?) BEFORE dagesh
-פִּ		ppi	# Hiriq is (wrongly?) BEFORE dagesh
+פְּ		ppə	# Shva is before dagesh
+פַּ		ppa	# Patah is before dagesh
+פָּ		ppā	# Qamats is before dagesh
+פֶּ		ppe	# Segol is before dagesh
+פִּ		ppi	# Hiriq is before dagesh
 ף	PeFinal	f
 ףּ	PeFinal	p
 צ	Tsadi	ʦ
 צּ	Tsadi	ʦʦ
-צַּ		ʦʦa	# Patah is (wrongly?) BEFORE dagesh
+צַּ		ʦʦa	# Patah is before dagesh
+צֵּ		ʦʦē	# Tsere is before dagesh
 ץ	TsadiFinal	ʦ
 ק	Qof	q
 קּ	Qof	qq
+קַּ		qqa	# Patah is before dagesh
+קֵּ		qqē	# Tsere is before dagesh
+קִּ		qqi	# Hiriq is before dagesh
+קֹּ		qqo	# Holam is before dagesh
 ר	Resh	r
 רּ	Resh	rr
 ש	Shin	sh
-שְׁ		shə	# Shva is (wrongly?) BEFORE shin dot
-שַׁ		sha	# Patah is (wrongly?) BEFORE shin dot
-שָׁ		shā	# Qamats is (wrongly?) BEFORE shin dot
-שֶׁ		she	# Segol is (wrongly?) BEFORE shin dot
-שֵׁ		shē	# Tsere is (wrongly?) BEFORE shin dot
-שִׁ		shi	# Hiriq is (wrongly?) BEFORE shin dot
-שֹׁ		sho	# Holam is (wrongly?) BEFORE shin dot
-שֶּׁ		shshe	# Segol is (wrongly?) BEFORE dagesh which is BEFORE shin dot
-בשֶׁ		boshe	# Shin dot functions as holam also (even though out of order)
-שְׂ		sə	# Shva is (wrongly?) BEFORE sin dot
-שַׂ		sa	# Patah is (wrongly?) BEFORE sin dot
-שָׂ		sā	# Qamats is (wrongly?) BEFORE sin dot
-שֶׂ		se	# Segol is (wrongly?) BEFORE sin dot
-שֵׂ		sē	# Tsere is (wrongly?) BEFORE sin dot
-שִׂ		si	# Hiriq is (wrongly?) BEFORE sin dot
-שָּׂ		ssā	# Qamats is (wrongly?) BEFORE dagesh which is BEFORE sin dot
-שׁ	Shin	š	#
-שׁ	Shin	š	# Keep shin as a single consonant for now (for easier processing) then change to sh later
-שּׁ	Shin	šš	#
+שׁ	Shin	š	# Shin followed by shin dot
+שׁ	Shin	š	# Single character Keep shin as a single consonant for now (for easier processing) then change to sh later
+שּׁ	Shin	šš	# shin, shin dot, dagesh or mapiq
+שּׁ	Shin	šš	# shin, dagesh or mapiq, shin dot
+שְׁ		šə	# Shva is before shin dot
+שַׁ		ša	# Patah is before shin dot
+שָׁ		šā	# Qamats is before shin dot
+שֶׁ		še	# Segol is before shin dot
+שֵׁ		šē	# Tsere is before shin dot
+שִׁ		ši	# Hiriq is before shin dot
+שֹׁ		šo	# Holam is before shin dot
+שֻׁ		šu	# Qubuts is before shin dot
+שְּׁ		ššə	# Shva is before dagesh which is before shin dot
+שַּׁ		šša	# Patah is before dagesh which is before shin dot
+שֶּׁ		šše	# Segol is before dagesh which is before shin dot
+שִּׁ		šši	# Hiriq is before dagesh which is before shin dot
+בשֶׁ		boše	# Shin dot functions as holam also (even though out of order)
 שׂ	Sin	s
 שׂ	Sin	s
 שּׂ	Sin	ss
+שְׂ		sə	# Shva is before sin dot
+שַׂ		sa	# Patah is before sin dot
+שָׂ		sā	# Qamats is before sin dot
+שֶׂ		se	# Segol is before sin dot
+שֵׂ		sē	# Tsere is before sin dot
+שִׂ		si	# Hiriq is before sin dot
+שַּׂ		ssa	# Patah is before dagesh which is before sin dot
+שָּׂ		ssā	# Qamats is before dagesh which is before sin dot
 ת	Tav	t
 תּ	Tav	tt
-תְּ		ttə	# Shva is (wrongly?) BEFORE dagesh
-תַּ		tta	# Patah is (wrongly?) BEFORE dagesh
-תָּ		ttā	# Qamats is (wrongly?) BEFORE dagesh
-תֶּ		tte	# Segol is (wrongly?) BEFORE dagesh
-תֵּ		ttē	# Tsere is (wrongly?) BEFORE dagesh
-תִּ		tti	# Hiriq is (wrongly?) BEFORE dagesh
-תֹּ		tto	# Holam is (wrongly?) BEFORE dagesh
+תְּ		ttə	# Shva is before dagesh
+תַּ		tta	# Patah is before dagesh
+תָּ		ttā	# Qamats is before dagesh
+תֶּ		tte	# Segol is before dagesh
+תֵּ		ttē	# Tsere is before dagesh
+תִּ		tti	# Hiriq is before dagesh
+תֹּ		tto	# Holam is before dagesh
+תֻּ		ttu	# Qubuts is before dagesh
 ְ	Shva	ə
 ַ	Patah	a
 ָ	Qamats	ā
@@ -182,4 +217,5 @@ hbo	Meta	en	Comment
 ֘	ZarqaAccent
 ֮	ZinorAccent
 ׃פ	SofPasuqPe	.◊
+׃ס	SofPasuqSamekh	.§
 ׃	SofPasuq	.

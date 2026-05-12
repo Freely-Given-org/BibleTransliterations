@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run
 # -*- coding: utf-8 -*-
 #
 # BibleOrgSysGlobals.py for BibleBooksCodes
@@ -60,9 +60,9 @@ Contains functions:
     getFlattenedXML( element, locationString, idString=None, level=0 )
     isBlank( elementText )
 
-    applyStringAdjustments( originalText, adjustmentList )
+    applyStringAdjustments( original_text, adjustmentList )
     stripWordEndsPunctuation( wordToken )
-    removeStringEndings( originalText, endingsList )
+    removeStringEndings( original_text, endingsList )
 
     pickleObject( theObject, filename, folderName=None )
     unpickleObject( filename, folderName=None )
@@ -1165,12 +1165,12 @@ def isBlank( elementText ):
 # Fixing strings
 #
 
-def applyStringAdjustments( originalText, adjustmentList ):
+def applyStringAdjustments( original_text, adjustmentList ):
     """
     Applies the list of adjustments to the text and returns the new text.
 
     The adjustmentList is a list object containing 3-tuples with:
-        1/ index where field should be found (in originalText)
+        1/ index where field should be found (in original_text)
         2/ findString (null for a pure insert)
         3/ replaceString (often a different length)
 
@@ -1181,13 +1181,13 @@ def applyStringAdjustments( originalText, adjustmentList ):
             (note that all of the above indexes refer to the original string before any substitutions)
         gives "A very quick orange fox tripped over the fat dog."
     """
-    text = originalText
+    text = original_text
     offset = 0
     for ix, findStr, replaceStr in sorted(adjustmentList): # sorted with lowest index first
         lenFS, lenRS = len(findStr), len(replaceStr)
         if debugFlag: assert text[ix+offset:ix+offset+lenFS] == findStr # Our find string must be there
         elif text[ix+offset:ix+offset+lenFS] != findStr:
-            logging.error( "applyStringAdjustments programming error -- given bad data for {!r}: {}".format( originalText, adjustmentList ) )
+            logging.error( "applyStringAdjustments programming error -- given bad data for {!r}: {}".format( original_text, adjustmentList ) )
         #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "before", repr(text) )
         text = text[:ix+offset] + replaceStr + text[ix+offset+lenFS:]
         #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, " after", repr(text) )
@@ -1239,12 +1239,12 @@ def stripWordEndsPunctuation( wordToken:str ) -> str:
 # end of BibleOrgSysGlobals.stripWordEndsPunctuation
 
 
-def removeStringEndings( originalText:str, endingsList:List[str] ) -> str:
+def removeStringEndings( original_text:str, endingsList:List[str] ) -> str:
     """
     Go through the given list of endings (in order)
         and remove any endings from the end of the string.
     """
-    newText = originalText
+    newText = original_text
     for ending in endingsList:
         if newText.endswith( ending ):
             newText = newText[:-len(ending)]

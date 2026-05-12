@@ -1,4 +1,4 @@
-x-grc-koine	Meta	en	Comment
+x-grc-koine	Meta	en	optionalComment
 Α	ALPHA	A	# Can be short or long
 Ἀ		A	# with psili
 Ἄ		A	# with psili and oxia
@@ -11,7 +11,7 @@ x-grc-koine	Meta	en	Comment
 Αα		Aʼa	# Ensure it's seen as two syllables -- not as long a
 Ἀα		Aʼa	# Ensure it's seen as two syllables -- not as long a
 α	alpha	a	# Can be short or long
-ά		a	# with tonos
+ά		a	# with tonos (indicates the stressed syllable)
 ὰ		a	# with varia
 ἀ		a	# with psili
 ᾶ		a	# with perispomeni
@@ -43,6 +43,7 @@ x-grc-koine	Meta	en	Comment
 γγ		ng
 Δ	DELTA	D
 δ	delta	d
+δ΄		d	# with tonos (indicates the stressed syllable)
 Ε	EPSILON	E
 Ἐ		E	# with psili
 Ἔ		E	# with psili and oxia
@@ -108,7 +109,7 @@ x-grc-koine	Meta	en	Comment
 Ἰω		Yō
 ι	iota	i	# Can be short or long
 ί		i	# with oxia
-ί		i	# with tonos
+ί		i	# with tonos (indicates the stressed syllable)
 ὶ		i	# with varia
 ἰ		i	# with psili
 ῖ		i	# with perispomeni
@@ -160,6 +161,7 @@ x-grc-koine	Meta	en	Comment
 σ	sigma	s
 ς	sigma	s
 ϛ	stigma	6	# sigma/tau ligature, mostly used for number 6
+ϛ΄		ϛ	# with tonos (indicates the stressed syllable)
 Τ	TAU	T
 τ	tau	t
 Υ	UPSILON	U	# Can be short or long
@@ -168,7 +170,7 @@ x-grc-koine	Meta	en	Comment
 Ὗ		Hu
 Υἱ		Hui
 υ	upsilon	u	# Can be short or long
-ύ		u	# with tonos
+ύ		u	# with tonos (indicates the stressed syllable)
 ὐ		u	# with psili
 ὺ		u	# with varia
 ὔ		u	# with psili and oxia
@@ -261,3 +263,7 @@ x-grc-koine	Meta	en	Comment
 οὕ		hou
 οὑ		hou
 υἱ		hui
+
+ἀπ᾿		apo	# with psili
+μετ᾽		meta	# with koronis
+μετ᾿		meta	# with psili
