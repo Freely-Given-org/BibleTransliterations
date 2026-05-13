@@ -783,13 +783,14 @@ pub fn transliterate_greek(input: &str) -> String {
 mod tests {
     use super::*;
 
-    fn init_tables() {
-        // Tables are now static, no initialization needed.
+    #[test]
+    fn test_haggai_darius() {
+        assert_eq!(transliterate_hebrew("חַגַּי", true), "Ḩaggay");
+        assert_eq!(transliterate_hebrew("דָּרְיָוֶשׁ", true), "Dārəyāvesh");
     }
 
     #[test]
     fn test_hebrew_schwas() {
-        init_tables();
         let cases = vec![
             ("וְ⁠אֶל־מֹשֶׁ֨ה", "vəʼel-mosheh"),
             ("אֶל־יְהוָ֗ה", "ʼel-yəhvāh"),
@@ -809,7 +810,6 @@ mod tests {
 
     #[test]
     fn test_title_casing() {
-        init_tables();
         let cases = vec![
             ("אֲרָם", "ʼₐrām", "ʼArām"),
         ];
@@ -934,7 +934,6 @@ mod tests {
 
     #[test]
     fn test_full_genesis_1() {
-        init_tables();
         let result = transliterate_hebrew(GENESIS_1, false);
         let result_words: Vec<String> = result.trim_end().replace('\n', " ").replace("  ", " ").split(' ').filter(|s| !s.is_empty()).map(|s| s.to_string()).collect();
         
@@ -948,7 +947,6 @@ mod tests {
 
     #[test]
     fn test_full_matthew_1() {
-        init_tables();
         let result = transliterate_greek(MATTHEW_1);
         assert!(result.contains("Biblos"));
         assert!(result.contains("geneseōs"));
