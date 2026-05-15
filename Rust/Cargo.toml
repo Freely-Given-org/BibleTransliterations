@@ -1,6 +1,11 @@
 [package]
 name = "bible-transliterations"
-version = "0.5.0"
+version = "0.8.0"
 edition = "2024"
 
+[lib]
+name = "bible_transliterations"
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
+pyo3 = { version = "0.28.3", features = ["extension-module"] }

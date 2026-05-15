@@ -277,14 +277,50 @@ pub fn transliterate_greek(input: &str) -> String {
     result
 }
 
+use pyo3::prelude::*;
+
+#[pyfunction]
+#[pyo3(name = "is_hebrew")]
+pub fn is_hebrew_py(c: char) -> bool {
+    is_hebrew(c)
+}
+
+#[pyfunction]
+#[pyo3(name = "is_greek")]
+pub fn is_greek_py(c: char) -> bool {
+    is_greek(c)
+}
+
+#[pyfunction]
+#[pyo3(signature = (input, capitalise_hebrew=false), name = "transliterate_Hebrew")]
+pub fn transliterate_hebrew_py(input: &str, capitalise_hebrew: bool) -> String {
+    transliterate_hebrew(input, capitalise_hebrew)
+}
+
+#[pyfunction]
+#[pyo3(name = "transliterate_Greek")]
+pub fn transliterate_greek_py(input: &str) -> String {
+    transliterate_greek(input)
+}
+
+#[pymodule]
+fn bible_transliterations(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(is_hebrew_py, m)?)?;
+    m.add_function(wrap_pyfunction!(is_greek_py, m)?)?;
+    m.add_function(wrap_pyfunction!(transliterate_hebrew_py, m)?)?;
+    m.add_function(wrap_pyfunction!(transliterate_greek_py, m)?)?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_haggai_darius() {
+    fn test_some_hebrew_words() {
         assert_eq!(transliterate_hebrew("חַגַּי", true), "Ḩaggay");
         assert_eq!(transliterate_hebrew("דָּרְיָוֶשׁ", true), "Dārəyāvesh");
+        assert_eq!(transliterate_hebrew("צִיּוֹן", true), "Tsiyyōn");
     }
 
     #[test]
@@ -403,6 +439,19 @@ mod tests {
         "6:8", "vənoaḩ", "māʦāʼ", "ḩēn", "bəˊēynēy", "yəhvāh.◊"
         ];
 
+    #[test]
+    fn test_full_genesis_1() {
+        let result = transliterate_hebrew(GENESIS_1, false);
+        let result_words: Vec<String> = result.trim_end().replace('\n', " ").replace("  ", " ").split(' ').filter(|s| !s.is_empty()).map(|s| s.to_string()).collect();
+        
+        let expected: Vec<String> = EXPECTED_GEN_1_RESULT_WORDS.iter().filter(|s| !s.is_empty()).map(|s| s.to_string()).collect();
+
+        for (n, (res, exp)) in result_words.iter().zip(expected.iter()).enumerate() {
+            assert_eq!(res, exp, "Word {} differs: {:?} vs {:?}", n + 1, res, exp);
+        }
+        assert_eq!(result_words.len(), expected.len());
+    }
+
     const MATTHEW_1: &str = r#"\v 1 ¶Βίβλος γενέσεως Ἰησοῦ Χριστοῦ, υἱοῦ Δαυὶδ, υἱοῦ Ἀβραάμ:
 \v 2 ¶Ἀβραὰμ ἐγέννησεν τὸν Ἰσαάκ, Ἰσαὰκ δὲ ἐγέννησεν τὸν Ἰακώβ, Ἰακὼβ δὲ ἐγέννησεν τὸν Ἰούδαν καὶ τοὺς ἀδελφοὺς αὐτοῦ,
 \v 3 Ἰούδας δὲ ἐγέννησεν τὸν Φαρὲς καὶ τὸν Ζάρα ἐκ τῆς Θαμάρ, Φαρὲς δὲ ἐγέννησεν τὸν Ἑσρώμ, Ἑσρὼμ δὲ ἐγέννησεν τὸν Ἀράμ,
@@ -430,25 +479,44 @@ mod tests {
 \v 25 καὶ οὐκ ἐγίνωσκεν αὐτὴν ἕως οὗ ἔτεκεν υἱόν· καὶ ἐκάλεσεν τὸ ὄνομα αὐτοῦ, Ἰησοῦν.
 "#;
 
+    const EXPECTED_MATTHEW_1_RESULT_WORDS: &[&str] = &[
+        "\\v", "1", "¶Biblos", "geneseōs", "Yaʸsou", "Ⱪristou,", "huiou", "Dawid,", "huiou", "Abraʼam:",
+        "\\v", "2", "¶Abraʼam", "egennaʸsen", "ton", "Isaʼak,", "Isaʼak", "de", "egennaʸsen", "ton", "Yakōb,", "Yakōb", "de", "egennaʸsen", "ton", "Youdan", "kai", "tous", "adelfous", "autou,",
+        "\\v", "3", "Youdas", "de", "egennaʸsen", "ton", "Fares", "kai", "ton", "Zara", "ek", "taʸs", "Thamar,", "Fares", "de", "egennaʸsen", "ton", "Hesrōm,", "Hesrōm", "de", "egennaʸsen", "ton", "Aram,",
+        "\\v", "4", "Aram", "de", "egennaʸsen", "ton", "Aminadab,", "Aminadab", "de", "egennaʸsen", "ton", "Naʼassōn,", "Naʼassōn", "de", "egennaʸsen", "ton", "Salmōn,",
+        "\\v", "5", "Salmōn", "de", "egennaʸsen", "ton", "Boes", "ek", "taʸs", "Ɽaⱪab,", "Boes", "de", "egennaʸsen", "ton", "Yōbaʸd", "ek", "taʸs", "Ɽouth,", "Yōbaʸd", "de", "egennaʸsen", "ton", "Iessai,",
+        "\\v", "6", "Iessai", "de", "egennaʸsen", "ton", "Dawid", "ton", "basilea.", "¶Dawid", "de", "egennaʸsen", "ton", "Solomōna", "ek", "taʸs", "tou", "Ouriou,",
+        "\\v", "7", "Solomōn", "de", "egennaʸsen", "ton", "Ɽoboam,", "Ɽoboam", "de", "egennaʸsen", "ton", "Abia,", "Abia", "de", "egennaʸsen", "ton", "Asaf,",
+        "\\v", "8", "Asaf", "de", "egennaʸsen", "ton", "Yōsafat,", "Yōsafat", "de", "egennaʸsen", "ton", "Yōram,", "Yōram", "de", "egennaʸsen", "ton", "Ozian,",
+        "\\v", "9", "Ozias", "de", "egennaʸsen", "ton", "Yōatham,", "Yōatham", "de", "egennaʸsen", "ton", "Aⱪaz,", "Aⱪaz", "de", "egennaʸsen", "ton", "Hezekian,",
+        "\\v", "10", "Hezekias", "de", "egennaʸsen", "ton", "Manassaʸ,", "Manassaʸ", "de", "egennaʸsen", "ton", "Amōs,", "Amōs", "de", "egennaʸsen", "ton", "Yōsian,",
+        "\\v", "11", "Yōsias", "de", "egennaʸsen", "ton", "Ieⱪonian", "kai", "tous", "adelfous", "autou", "epi", "taʸs", "metoikesias", "Babulōnos.",
+        "\\v", "12", "¶Meta", "de", "taʸn", "metoikesian", "Babulōnos,", "Ieⱪonias", "egennaʸsen", "ton", "Salathiaʸl,", "Salathiaʸl", "de", "egennaʸsen", "ton", "Zorobabel,",
+        "\\v", "13", "Zorobabel", "de", "egennaʸsen", "ton", "Abioud,", "Abioud", "de", "egennaʸsen", "ton", "Eliakeim,", "Eliakeim", "de", "egennaʸsen", "ton", "Azōr,",
+        "\\v", "14", "Azōr", "de", "egennaʸsen", "ton", "Sadōk,", "Sadōk", "de", "egennaʸsen", "ton", "Aⱪeim,", "Aⱪeim", "de", "egennaʸsen", "ton", "Elioud,",
+        "\\v", "15", "Elioud", "de", "egennaʸsen", "ton", "Eleazar,", "Eleazar", "de", "egennaʸsen", "ton", "Matthan,", "Matthan", "de", "egennaʸsen", "ton", "Yakōb,",
+        "\\v", "16", "Yakōb", "de", "egennaʸsen", "ton", "Yōsaʸf", "ton", "andra", "Marias,", "ex", "haʸs", "egennaʸthaʸ", "Yaʸsous,", "ho", "legomenos", "Ⱪristos.",
+        "\\v", "17", "¶Pasai", "oun", "hai", "geneai", "apo", "Abraʼam", "heōs", "Dawid", "geneai", "dekatessares,", "kai", "apo", "Dawid", "heōs", "taʸs", "metoikesias", "Babulōnos", "geneai", "dekatessares,", "kai", "apo", "taʸs", "metoikesias", "Babulōnos", "heōs", "tou", "Ⱪristou", "geneai", "dekatessares.",
+        "\\v", "18", "¶Tou", "de", "Yaʸsou", "Ⱪristou", "haʸ", "genesis", "houtōs", "aʸn:", "mnaʸsteutheisaʸs", "taʸs", "maʸtros", "autou", "Marias", "tōi", "Yōsaʸf,", "prin", "aʸ", "sunelthein", "autous,", "heurethaʸ", "en", "gastri", "eⱪousa", "ek", "Pneumatos", "Hagiou.",
+        "\\v", "19", "Yōsaʸf", "de", "ho", "anaʸr", "autaʸs,", "dikaios", "ōn", "kai", "maʸ", "thelōn", "autaʸn", "deigmatisai,", "eboulaʸthaʸ", "lathra", "apolusai", "autaʸn.",
+        "\\v", "20", "Tauta", "de", "autou", "enthumaʸthentos,", "idou,", "angelos", "Kuriou", "katʼ", "onar", "efanaʸ", "autōi", "legōn,", "“Yōsaʸf,", "huios", "Dawid,", "maʸ", "fobaʸthaʸs", "paralabein", "Mariam", "taʸn", "gunaika", "sou,", "to", "gar", "en", "autaʸ", "gennaʸthen", "ek", "Pneumatos", "estin", "Hagiou.",
+        "\\v", "21", "Texetai", "de", "huion,", "kai", "kaleseis", "to", "onoma", "autou", "Yaʸsoun,", "autos", "gar", "sōsei", "ton", "laon", "autou", "apo", "tōn", "hamartiōn", "autōn.”",
+        "\\v", "22", "Touto", "de", "holon", "gegonen,", "hina", "plaʸrōthaʸ", "to", "ɽaʸthen", "hupo", "Kuriou", "dia", "tou", "profaʸtou", "legontos,",
+        "\\v", "23", "“Idou,", "haʸ", "parthenos", "en", "gastri", "hexei", "kai", "texetai", "huion,", "kai", "kalesousin", "to", "onoma", "autou", "Emmanouaʸl”,", "ho", "estin", "methermaʸneuomenon,", "“Methʼ", "haʸmōn", "ho", "Theos”.",
+        "\\v", "24", "Egertheis", "de", "ho", "Yōsaʸf", "apo", "tou", "hupnou,", "epoiaʸsen", "hōs", "prosetaxen", "autōi", "ho", "angelos", "Kuriou,", "kai", "parelaben", "taʸn", "gunaika", "autou,",
+        "\\v", "25", "kai", "ouk", "eginōsken", "autaʸn", "heōs", "hou", "eteken", "huion;", "kai", "ekalesen", "to", "onoma", "autou,", "Yaʸsoun."
+    ];
+
     #[test]
-    fn test_full_genesis_1() {
-        let result = transliterate_hebrew(GENESIS_1, false);
+    fn test_full_matthew_1() {
+        let result = transliterate_greek(MATTHEW_1);
         let result_words: Vec<String> = result.trim_end().replace('\n', " ").replace("  ", " ").split(' ').filter(|s| !s.is_empty()).map(|s| s.to_string()).collect();
         
-        let expected: Vec<String> = EXPECTED_GEN_1_RESULT_WORDS.iter().filter(|s| !s.is_empty()).map(|s| s.to_string()).collect();
+        let expected: Vec<String> = EXPECTED_MATTHEW_1_RESULT_WORDS.iter().filter(|s| !s.is_empty()).map(|s| s.to_string()).collect();
 
         for (n, (res, exp)) in result_words.iter().zip(expected.iter()).enumerate() {
             assert_eq!(res, exp, "Word {} differs: {:?} vs {:?}", n + 1, res, exp);
         }
         assert_eq!(result_words.len(), expected.len());
-    }
-
-    #[test]
-    fn test_full_matthew_1() {
-        let result = transliterate_greek(MATTHEW_1);
-        assert!(result.contains("Biblos"));
-        assert!(result.contains("geneseōs"));
-        assert!(result.contains("Yaʸsou"));
-        assert!(result.contains("Dawid"));
     }
 }

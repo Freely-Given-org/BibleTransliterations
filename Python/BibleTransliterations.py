@@ -100,7 +100,7 @@ def load_transliteration_table(which) -> bool:
 # end of load_transliteration_table()
 
 
-def transliterate_Hebrew(input:str, capitaliseHebrew=False) -> str:
+def transliterate_Hebrew(input:str, capitalise_hebrew=False) -> str:
     """
     Hebrew doesn't have capital letters,
         so if the calling function knows it's a name or at the beginning of a sentence,
@@ -112,7 +112,7 @@ def transliterate_Hebrew(input:str, capitaliseHebrew=False) -> str:
         but it really needs to be completely rewritten.
         See https://en.wikipedia.org/wiki/Romanization_of_Hebrew.
     """
-    fnPrint( DEBUGGING_THIS_MODULE, f"transliterate_Hebrew({input}, {capitaliseHebrew})")
+    fnPrint( DEBUGGING_THIS_MODULE, f"transliterate_Hebrew({input}, {capitalise_hebrew})")
 
     # Find the index of the first Hebrew character in the INPUT string (will be the same for the output string)
     for first_Hebrew_index,char in enumerate(input):
@@ -314,7 +314,7 @@ def transliterate_Hebrew(input:str, capitaliseHebrew=False) -> str:
             stop_so_we_can_fix_the_Hebrew_table
 
     # assert not ('mefib' in transliteratedHebrewInput or 'Mefib' in transliteratedHebrewInput or 'mephib' in transliteratedHebrewInput or 'Mephib' in transliteratedHebrewInput), f"Mefib {input=} {hebrewInput=} {transliteratedHebrewInput=}"
-    if not capitaliseHebrew:
+    if not capitalise_hebrew:
         return f'{input[:first_Hebrew_index]}{transliteratedHebrewInput}{input[past_Hebrew_index:]}'
 
     # Ok, we have to title case it -- presumably the entire string, not each individual word
@@ -561,8 +561,8 @@ def briefDemo() -> None:
     for hebWord,expectedResult1,expectedResult2 in (('אֲרָם','ʼₐrām','ʼArām'),
                                    ):
         hebWord = hebWord.replace( '\u2060', '' ) # Remove word joiners
-        translit1 = transliterate_Hebrew( hebWord, capitaliseHebrew=False )
-        translit2 = transliterate_Hebrew( hebWord, capitaliseHebrew=True )
+        translit1 = transliterate_Hebrew( hebWord, capitalise_hebrew=False )
+        translit2 = transliterate_Hebrew( hebWord, capitalise_hebrew=True )
         print( f"  {hebWord=} then {translit1=} and {translit2=}")
         assert translit1==expectedResult1 and translit2==expectedResult2, f"{hebWord=} {translit1=} {expectedResult1=} {translit2=} {expectedResult2=}"
 # end of BibleTransliterations.briefDemo

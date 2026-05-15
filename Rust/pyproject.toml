@@ -1,0 +1,14 @@
+[build-system]
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "bible_transliterations"
+dynamic = ["version"]  # Tells Python to look elsewhere for the version
+description = "Hebrew and Greek transliterations for Bibles done in Rust"
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.maturin]
+# This tells maturin which features/bindings to use
+features = ["pyo3/extension-module"]

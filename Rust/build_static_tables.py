@@ -26,8 +26,9 @@ def load_tsv(path, source_col_name):
             if source:
                 rows.append({'source': source, 'en': en})
     
-    # Sort by source length (chars) descending, then by source itself for stability
-    rows.sort(key=lambda r: (-len(r['source']), r['source']))
+    # Sort by source length (chars) descending. Python's sort is stable, 
+    # so this preserves the original file order for equal lengths.
+    rows.sort(key=lambda r: -len(r['source']))
     return rows
 
 def format_rust_rows(rows):
