@@ -508,7 +508,7 @@ def getLatestPythonModificationDate() -> str:
                                 latestDD = DD
                                 #collectedFilepaths.append( (filepath,lineBit) )
                             break
-    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, latestYYYY, latestMM, latestDD ); halt
+    #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, latestYYYY, latestMM, latestDD ); assert False, "We want to stop here"
     return f'{latestYYYY}-{latestMM:02}-{latestDD:02}'
 # end of BibleOrgSysGlobals.getLatestPythonModificationDate
 
@@ -1055,7 +1055,7 @@ def checkXMLNoAttributes( element, locationString, idString=None, loadErrorsDict
                         .format( (idString+' ') if idString else '', attrib, value, locationString )
         logging.warning( warningString )
         if loadErrorsDict is not None: loadErrorsDict.append( warningString )
-        if strictCheckingFlag or debugFlag and haltOnXMLWarning: halt
+        if strictCheckingFlag or debugFlag and haltOnXMLWarning: assert False, "We want to stop here"
 # end of BibleOrgSysGlobals.checkXMLNoAttributes
 
 
@@ -1068,7 +1068,7 @@ def checkXMLNoText( element, locationString, idString=None, loadErrorsDict=None 
                         .format( (idString+' ') if idString else '', element.text, locationString )
         logging.error( errorString )
         if loadErrorsDict is not None: loadErrorsDict.append( errorString )
-        if strictCheckingFlag or debugFlag and haltOnXMLWarning: halt
+        if strictCheckingFlag or debugFlag and haltOnXMLWarning: assert False, "We want to stop here"
 # end of BibleOrgSysGlobals.checkXMLNoText
 
 def checkXMLNoTail( element, locationString, idString=None, loadErrorsDict=None ):
@@ -1080,7 +1080,7 @@ def checkXMLNoTail( element, locationString, idString=None, loadErrorsDict=None 
                         .format( (idString+' ') if idString else '', element.tail, locationString )
         logging.warning( warningString )
         if loadErrorsDict is not None: loadErrorsDict.append( warningString )
-        if strictCheckingFlag or debugFlag and haltOnXMLWarning: halt
+        if strictCheckingFlag or debugFlag and haltOnXMLWarning: assert False, "We want to stop here"
 # end of BibleOrgSysGlobals.checkXMLNoTail
 
 
@@ -1094,7 +1094,7 @@ def checkXMLNoSubelements( element, locationString, idString=None, loadErrorsDic
         logger = logging.critical if subelement.text else logging.error
         logger( errorString )
         if loadErrorsDict is not None: loadErrorsDict.append( errorString )
-        if strictCheckingFlag or debugFlag and haltOnXMLWarning: halt
+        if strictCheckingFlag or debugFlag and haltOnXMLWarning: assert False, "We want to stop here"
 # end of BibleOrgSysGlobals.checkXMLNoSubelements
 
 def checkXMLNoSubelementsWithText( element, locationString, idString=None, loadErrorsDict=None ):
@@ -1110,7 +1110,7 @@ def checkXMLNoSubelementsWithText( element, locationString, idString=None, loadE
                                 element.tail.strip() if element.tail else element.tail )
             logging.warning( warningString )
             if loadErrorsDict is not None: loadErrorsDict.append( warningString )
-            if strictCheckingFlag or debugFlag and haltOnXMLWarning: halt
+            if strictCheckingFlag or debugFlag and haltOnXMLWarning: assert False, "We want to stop here"
 # end of BibleOrgSysGlobals.checkXMLNoSubelementsWithText
 
 
@@ -1132,7 +1132,7 @@ def getFlattenedXML( element, locationString, idString=None, level=0 ):
         if attributes: result += ' ' + attributes
         result += '>'
     elif attributes:
-        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "We are losing attributes here:", attributes ); halt
+        #dPrint( 'Quiet', DEBUGGING_THIS_MODULE, "We are losing attributes here:", attributes ); assert False, "We want to stop here"
         result += '<' + attributes + '>'
     if element.text: result += element.text
     for subelement in element:
@@ -1559,7 +1559,7 @@ setVerbosity( verbosityString )
     ## now 34 ['cls', 'li1', 'li2', 'li3', 'li4', 'm', 'mi', 'nb', 'p', 'pc', 'ph1', 'ph2', 'ph3', 'ph4',
     ##    'pi1', 'pi2', 'pi3', 'pi4', 'pm', 'pmc', 'pmo', 'pmr', 'pr', 'q1', 'q2', 'q3', 'q4', 'qa', 'qc',
     ##    'qm1', 'qm2', 'qm3', 'qm4', 'qr']
-    ##dPrint( 'Quiet', DEBUGGING_THIS_MODULE, len(USFMParagraphMarkers), sorted(USFMParagraphMarkers) ); halt
+    ##dPrint( 'Quiet', DEBUGGING_THIS_MODULE, len(USFMParagraphMarkers), sorted(USFMParagraphMarkers) ); assert False, "We want to stop here"
 
 
 

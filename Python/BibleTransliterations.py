@@ -89,7 +89,7 @@ def load_transliteration_table(which) -> bool:
         for source in source_set:
             if source_list.count(source) > 1:
                 logging.critical(f"  Have {source_list.count(source)} of '{source}'")
-        halt
+        assert False, "We want to stop here"
 
     # Must sort so the longest sequences go first
     if which=='Hebrew':
@@ -534,7 +534,7 @@ def briefDemo() -> None:
     for n, (current_result_word, previous_result_word) in enumerate( zip( resultWords, Expected_Gen_1_result_words, strict=True ), start=1 ):
         if current_result_word != previous_result_word:
             logging.critical( f"Result word {n} differs: ({len(current_result_word)}) {current_result_word=} vs ({len(previous_result_word)}) {previous_result_word=}" )
-            halt
+            assert False, "We want to stop here"
 
     vPrint( 'Normal', DEBUGGING_THIS_MODULE, "\nTesting Matthew 1 in Greek…" )
     load_transliteration_table('Greek')
