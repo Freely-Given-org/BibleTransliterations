@@ -64,11 +64,8 @@ pub fn transliterate_hebrew(input: &str, capitalise_hebrew: bool) -> String {
                 let next_char1 = chars_after[0];
                 let next_char2 = chars_after[1];
                 if next_char1 == next_char2 && "bdfghklmnpqrsştţvz".contains(next_char1) {
-                    // Delete the doubled consonant
-                    let mut new_result = String::with_capacity(result.len());
-                    new_result.push_str(&result[..abs_ix_hyphen + 1]);
-                    new_result.push_str(&result[abs_ix_hyphen + 2..]);
-                    result = new_result;
+                    // Delete the whole consonant, including multibyte letters such as ţ and ş.
+                    result.remove(abs_ix_hyphen + 1);
                     search_start_index = abs_ix_hyphen + 1;
                 } else {
                     search_start_index = abs_ix_hyphen + 1;
@@ -321,6 +318,38 @@ mod tests {
         assert_eq!(transliterate_hebrew("חַגַּי", true), "Ḩaggay");
         assert_eq!(transliterate_hebrew("דָּרְיָוֶשׁ", true), "Dārəyāvesh");
         assert_eq!(transliterate_hebrew("צִיּוֹן", true), "Tsiyyōn");
+    }
+
+    #[test]
+    fn test_hebrew_dagesh_after_maqaf() {
+        let cases = [
+            ("מַה־טּוֹב", "mah-ţōⱱ"),
+            ("מַה־סּוֹף", "mah-şōf"),
+            ("מַה־בּוֹ", "mah-bō"),
+            ("מַה־טּוֹב־סּוֹף־בּוֹ", "mah-ţōⱱ-şōf-bō"),
+            ("מַה־טוֹב", "mah-ţōⱱ"),
+            ("מַה־טּ", "mah-ţ"),
+            ("מַה־ט", "mah-ţ"),
+            ("מַה־", "mah-"),
+        ];
+
+        for (hebrew, expected) in cases {
+            assert_eq!(transliterate_hebrew(hebrew, false), expected, "{hebrew}");
+        }
+    }
+
+    #[test]
+    fn test_micah_6_8_html() {
+        // The full verse that triggered a UTF-8 boundary panic in OpenBibleData.
+        let hebrew = "הִגִּ֥יד לְ⁠ךָ֛ אָדָ֖ם מַה־טּ֑וֹב וּ⁠מָֽה־יְהוָ֞ה דּוֹרֵ֣שׁ מִמְּ⁠ךָ֗ כִּ֣י אִם־עֲשׂ֤וֹת מִשְׁפָּט֙ וְ⁠אַ֣הֲבַת חֶ֔סֶד וְ⁠הַצְנֵ֥עַ לֶ֖כֶת עִם־אֱלֹהֶֽי⁠ךָ׃פ";
+        let expected = "higgid lə⁠kā ʼādām mah-ţōⱱ ū⁠māh-yəhvāh dōrēsh mimmə⁠kā kiy ʼim-ˊₐsōt mishpāţ və⁠ʼahₐⱱat ḩeşed və⁠haʦnēˊa leket ˊim-ʼₑlohey⁠kā.◊";
+        assert_eq!(transliterate_hebrew(hebrew, false), expected);
+
+        let html = format!("<span class=\"UHB_trans\">{hebrew}</span>");
+        assert_eq!(
+            transliterate_hebrew(&html, false),
+            format!("<span class=\"UHB_trans\">{expected}</span>"),
+        );
     }
 
     #[test]
